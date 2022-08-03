@@ -1,0 +1,36 @@
+﻿factor,direction,category
+DeepValue,TRUE,Value
+Price/Sales,FALSE,Value
+Upside Potential,TRUE,Value
+DIVIDEND YIELD - CLOSE,TRUE,Dividend
+Price Trend - 26 Week,TRUE,Momentum
+Price Trend - 52 Weeks,TRUE,Momentum
+PriceMomentum,TRUE,Momentum
+Research & Development / Total Assets,TRUE,Investment
+RPR,TRUE,Investment
+Dispersion in Analyst Forecasts stdev/mean,TRUE,Information Uncertainty
+Number of Analyst who cover the company Yoy Growth,FALSE,Information Uncertainty
+Trend Line of CPS,TRUE,Growth
+Fixed Assets % Common Equity,FALSE,Financial Quality
+Fixed Charge Coverage Ratio,TRUE,Financial Quality
+Long Term Debt % Common Equity,FALSE,Financial Quality
+Total Assets/Common Equity,FALSE,Financial Quality
+Total Debt % Common Equity,FALSE,Financial Quality
+Cash Earnings Return On Equity,TRUE,Earnings Quality
+Total Asset Turnover,TRUE,Earnings Quality
+EarningMomentum,TRUE,Earning Momentum
+Up Down to consensus EPS,TRUE,Earning Momentum
+Up Down to consensus SALES,TRUE,Earning Momentum
+Excess_RSI,FALSE,Contrarian
+Long term relative strength index,FALSE,Contrarian
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
