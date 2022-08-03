@@ -16,7 +16,7 @@
 
 2022-05-27_cosmos-univ-with-factors_with-finval_global_monthly.csv
 
-data/
+*.pickle
 
 # AWS User-specific
 .idea/**/aws.xml
