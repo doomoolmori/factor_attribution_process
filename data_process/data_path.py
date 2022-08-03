@@ -1,5 +1,13 @@
 import os
 
+def createFolder(directory):
+    try:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+    except OSError:
+        print('error')
+
+
 FACTOR_CATEGORY_PATH = f'{os.getcwd()}/'
 FACTOR_CATEGORY_NAME = 'QT_factor_category_compress_final.csv'
 
@@ -15,3 +23,6 @@ DICT_OF_US_DATA_NAME = 'us_dict_of_data.pickle'
 KOREA_UNIVERSE = 'Univ_KOSPI&KOSDAQ'
 US_UNIVERSE = 'Univ_S&P500'
 
+
+createFolder(DICT_OF_US_DATA_PATH)
+createFolder(DICT_OF_KOREA_DATA_PATH)
