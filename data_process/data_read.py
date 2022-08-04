@@ -2,7 +2,6 @@ import polars as pl
 from data_process import data_path
 import pickle
 
-
 class DataRead:
     def __init__(self, universe):
         self.path = data_path.RAW_DATA_PATH
@@ -60,6 +59,7 @@ def read_raw_data_df(path: str, name: str) -> pl.DataFrame:
 
 def universe_filter_df(df: pl.DataFrame, universe: str) -> pl.DataFrame:
     return df.filter((pl.col(universe) == 1)).sort('date_')
+
 
 
 def make_dict_of_pandas(df: pl.DataFrame) -> dict:
