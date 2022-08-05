@@ -1,6 +1,7 @@
 import polars as pl
 from data_process import data_path
 import pickle
+import gzip
 
 class DataRead:
     def __init__(self, universe):
@@ -21,6 +22,7 @@ class DataRead:
                 name=self.pickle_name)
             print('already exist dict_of_pandas')
         except:
+            data_path.make_path()
             self._calculation()
 
     def _calculation(self):
@@ -77,12 +79,12 @@ def make_dict_of_pandas(df: pl.DataFrame) -> dict:
 def save_dict_to_pickle(dict_: dict, path: str, name: str):
     file_name = f'{path}/{name}'
     # save dictionary to pickle file
-    with open(f'{file_name}', 'wb') as file:
+    with gzip.open(f'{file_name}', 'wb') as file:
         pickle.dump(dict_, file, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 def read_pickle_to_dict(path: str, name: str) -> dict:
     file_name = f'{path}/{name}'
-    with open(f'{file_name}', "rb") as file:
+    with gzip.open(f'{file_name}', "rb") as file:
         result = pickle.load(file)
     return result

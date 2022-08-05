@@ -7,6 +7,12 @@ def createFolder(directory):
     except OSError:
         print('error')
 
+
+def make_path():
+    createFolder(DICT_OF_US_DATA_PATH)
+    createFolder(DICT_OF_KOREA_DATA_PATH)
+
+
 KOREA_UNIVERSE = 'Univ_KOSPI&KOSDAQ'
 US_UNIVERSE = 'Univ_S&P500'
 
@@ -20,11 +26,10 @@ DICT_OF_KOREA_DATA_PATH = f'{os.getcwd()}/data/korea'
 DICT_OF_KOREA_DATA_NAME = 'korea_dict_of_data.pickle'
 DICT_OF_KOREA_RANK_NAME = 'korea_dict_of_rank.pickle'
 DICT_OF_KOREA_PCT_NAME = 'korea_dict_of_pct.pickle'
+KOREA_STRATEGY_WEIGHT_PATH = f'{DICT_OF_KOREA_DATA_PATH}/strategy_weight'
 
 DICT_OF_US_DATA_PATH = f'{os.getcwd()}/data/us'
 DICT_OF_US_DATA_NAME = 'us_dict_of_data.pickle'
 DICT_OF_US_RANK_NAME = 'us_dict_of_rank.pickle'
 DICT_OF_US_PCT_NAME = 'us_dict_of_pct.pickle'
-
-createFolder(DICT_OF_US_DATA_PATH)
-createFolder(DICT_OF_KOREA_DATA_PATH)
+US_WEIGHT_PATH = f'{DICT_OF_KOREA_DATA_PATH}/strategy_weight'

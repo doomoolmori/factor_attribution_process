@@ -1,7 +1,7 @@
 from data_process import data_read
 from data_process import data_path
 import pandas as pd
-
+import numpy as np
 
 def rank_dict_add(data):
     """
@@ -14,7 +14,7 @@ def rank_dict_add(data):
     factor_info = pd.read_csv(
         f'{data_path.FACTOR_CATEGORY_PATH}/'
         f'{data_path.FACTOR_CATEGORY_NAME}')
-    survive_df = (data.dict_of_pandas['RI'] >= 0)
+    survive_df = make_survive_df(data.dict_of_pandas['RI'])
     rank_sum_factor_list = factor_info['category'].unique()
     rank_sum_factor_init = [0 for x in range(len(rank_sum_factor_list))]
     rank_sum_dict = dict(zip(rank_sum_factor_list, rank_sum_factor_init))
@@ -28,7 +28,7 @@ def rank_dict_add(data):
         na_fill_direction_factor_df = fill_survive_data_with_min(
             survive_df=survive_df,
             factor_df=direction_factor_df,
-            min_value=direction_factor_df.min().min())
+            min_value=np.nanmin(direction_factor_df))
         rank_df = rank_ascending(na_fill_direction_factor_df)
         rank_sum_dict[category] += rank_df
 
@@ -37,6 +37,10 @@ def rank_dict_add(data):
         rank_sum_dict[rank_sum_factor] = rank_ascending(temp)
     print('factor_rank_sum_calculation')
     return rank_sum_dict
+
+
+def make_survive_df(df: pd.DataFrame):
+    return df >= 0
 
 
 def direction_control(_any: any, direction: bool) -> any:

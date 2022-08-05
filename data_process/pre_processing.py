@@ -7,3 +7,4 @@ if __name__ == "__main__":
     data.dict_of_rank = calculation_rank.rank_dict_add(data)
     data.adj_ri = calculation_pct.make_adj_ri_df(data.dict_of_pandas['RI'])
     data.adj_pct = data.adj_ri.pct_change().shift(-1)
+
