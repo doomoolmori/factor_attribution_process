@@ -7,10 +7,9 @@ def createFolder(directory):
     except OSError:
         print('error')
 
-
 def make_path():
-    createFolder(DICT_OF_US_DATA_PATH)
-    createFolder(DICT_OF_KOREA_DATA_PATH)
+    createFolder(US_STRATEGY_WEIGHT_PATH)
+    createFolder(KOREA_STRATEGY_WEIGHT_PATH)
 
 
 KOREA_UNIVERSE = 'Univ_KOSPI&KOSDAQ'
@@ -32,4 +31,4 @@ DICT_OF_US_DATA_PATH = f'{os.getcwd()}/data/us'
 DICT_OF_US_DATA_NAME = 'us_dict_of_data.pickle'
 DICT_OF_US_RANK_NAME = 'us_dict_of_rank.pickle'
 DICT_OF_US_PCT_NAME = 'us_dict_of_pct.pickle'
-US_WEIGHT_PATH = f'{DICT_OF_KOREA_DATA_PATH}/strategy_weight'
+US_STRATEGY_WEIGHT_PATH = f'{DICT_OF_US_DATA_PATH}/strategy_weight'
