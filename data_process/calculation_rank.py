@@ -3,6 +3,7 @@ from data_process import data_path
 import pandas as pd
 import numpy as np
 
+
 def rank_dict_add(data):
     """
     1. 팩터 방향 설정 (반대 방향의 경우 - 처리) #direction_control
@@ -14,7 +15,7 @@ def rank_dict_add(data):
     factor_info = pd.read_csv(
         f'{data_path.FACTOR_CATEGORY_PATH}/'
         f'{data_path.FACTOR_CATEGORY_NAME}')
-    survive_df = make_survive_df(data.dict_of_pandas['RI'])
+    survive_df = make_survive_df(df=data['RI'])
     rank_sum_factor_list = factor_info['category'].unique()
     rank_sum_factor_init = [0 for x in range(len(rank_sum_factor_list))]
     rank_sum_dict = dict(zip(rank_sum_factor_list, rank_sum_factor_init))
@@ -23,7 +24,7 @@ def rank_dict_add(data):
                                            factor_info['factor'],
                                            factor_info['category']):
         direction_factor_df = direction_control(
-            _any=(data.dict_of_pandas[factor].copy()).astype(float),
+            _any=(data[factor].copy()).astype(float),
             direction=direction)
         na_fill_direction_factor_df = fill_survive_data_with_min(
             survive_df=survive_df,
@@ -60,5 +61,6 @@ def rank_ascending(df: pd.DataFrame):
 
 
 if __name__ == "__main__":
-    data = data_read.DataRead(universe='korea')
-    result = rank_dict_add(data)
+    from data_process import pre_processing
+    pre_process = pre_processing.PreProcessing(universe='korea')
+    result = rank_dict_add(pre_process.dict_of_pandas)

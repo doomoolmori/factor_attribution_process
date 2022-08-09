@@ -27,7 +27,8 @@ def make_adj_ri_df(ri_df: pd.DataFrame) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    data = data_read.DataRead(universe='korea')
-    ri_df = data.dict_of_pandas['RI']
+    from data_process import pre_processing
+    pre_process = pre_processing.PreProcessing(universe='korea')
+    ri_df = pre_process.dict_of_pandas['RI']
     adj_ri = make_adj_ri_df(ri_df)
     adj_pct = adj_ri.pct_change().shift(-1)

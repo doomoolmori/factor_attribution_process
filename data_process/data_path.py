@@ -1,16 +1,5 @@
 import os
 
-def createFolder(directory):
-    try:
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-    except OSError:
-        print('error')
-
-def make_path():
-    createFolder(US_STRATEGY_WEIGHT_PATH)
-    createFolder(KOREA_STRATEGY_WEIGHT_PATH)
-
 
 KOREA_UNIVERSE = 'Univ_KOSPI&KOSDAQ'
 US_UNIVERSE = 'Univ_S&P500'
@@ -21,14 +10,27 @@ FACTOR_CATEGORY_NAME = 'QT_factor_category_compress_final.csv'
 RAW_DATA_PATH = f'{os.getcwd()}/'
 RAW_DATA_NAME = '2022-05-27_cosmos-univ-with-factors_with-finval_global_monthly.csv'
 
-DICT_OF_KOREA_DATA_PATH = f'{os.getcwd()}/data/korea'
-DICT_OF_KOREA_DATA_NAME = 'korea_dict_of_data.pickle'
-DICT_OF_KOREA_RANK_NAME = 'korea_dict_of_rank.pickle'
-DICT_OF_KOREA_PCT_NAME = 'korea_dict_of_pct.pickle'
-KOREA_STRATEGY_WEIGHT_PATH = f'{DICT_OF_KOREA_DATA_PATH}/strategy_weight'
+KOREA_PATH_DICT = {
+    'DATA_PATH': f'{os.getcwd()}/data/korea',
+    'STRATEGY_WEIGHT_PATH': f'{os.getcwd()}/data/korea/strategy_weight'}
 
-DICT_OF_US_DATA_PATH = f'{os.getcwd()}/data/us'
-DICT_OF_US_DATA_NAME = 'us_dict_of_data.pickle'
-DICT_OF_US_RANK_NAME = 'us_dict_of_rank.pickle'
-DICT_OF_US_PCT_NAME = 'us_dict_of_pct.pickle'
-US_STRATEGY_WEIGHT_PATH = f'{DICT_OF_US_DATA_PATH}/strategy_weight'
+KOREA_NAME_DICT = {
+    'UNIVERSE': 'Univ_KOSPI&KOSDAQ',
+    'DATA_NAME': 'korea_dict_of_data.pickle',
+    'RANK_NAME': 'korea_dict_of_rank.pickle',
+    'RI_NAME': 'adj_ri.csv',
+    'PCT_NAME': 'adj_pct.csv'}
+
+US_PATH_DICT = {
+    'DATA_PATH': f'{os.getcwd()}/data/us',
+    'STRATEGY_WEIGHT_PATH': f'{os.getcwd()}/data/us/strategy_weight'}
+
+US_NAME_DICT = {
+    'UNIVERSE': 'Univ_S&P500',
+    'DATA_NAME': 'us_dict_of_data.pickle',
+    'RANK_NAME': 'us_dict_of_rank.pickle',
+    'RI_NAME': 'adj_ri.csv',
+    'PCT_NAME': 'adj_pct.csv'}
+
+
+
