@@ -1,25 +1,25 @@
-﻿factor,direction,category
-DeepValue,TRUE,Value
-Price/Sales,FALSE,Value
-Upside Potential,TRUE,Value
-DIVIDEND YIELD - CLOSE,TRUE,Dividend
-Price Trend - 26 Week,TRUE,Momentum
-Price Trend - 52 Weeks,TRUE,Momentum
-PriceMomentum,TRUE,Momentum
-Research & Development / Total Assets,TRUE,Investment
-RPR,TRUE,Investment
-Dispersion in Analyst Forecasts stdev/mean,TRUE,Information Uncertainty
-Number of Analyst who cover the company Yoy Growth,FALSE,Information Uncertainty
-Trend Line of CPS,TRUE,Growth
-Fixed Assets % Common Equity,FALSE,Financial Quality
-Fixed Charge Coverage Ratio,TRUE,Financial Quality
-Long Term Debt % Common Equity,FALSE,Financial Quality
-Total Assets/Common Equity,FALSE,Financial Quality
-Total Debt % Common Equity,FALSE,Financial Quality
-Cash Earnings Return On Equity,TRUE,Earnings Quality
-Total Asset Turnover,TRUE,Earnings Quality
-EarningMomentum,TRUE,Earning Momentum
-Up Down to consensus EPS,TRUE,Earning Momentum
-Up Down to consensus SALES,TRUE,Earning Momentum
-Excess_RSI,FALSE,Contrarian
-Long term relative strength index,FALSE,Contrarian
+﻿factor,direction,category,z_score_weight
+DeepValue,TRUE,Value,0.333333333
+Price/Sales,FALSE,Value,0.333333333
+Upside Potential,TRUE,Value,0.333333333
+DIVIDEND YIELD - CLOSE,TRUE,Dividend,1
+Price Trend - 26 Week,TRUE,Momentum,0.333333333
+Price Trend - 52 Weeks,TRUE,Momentum,0.333333333
+PriceMomentum,TRUE,Momentum,0.333333333
+Research & Development / Total Assets,TRUE,Investment,0.5
+RPR,TRUE,Investment,0.5
+Dispersion in Analyst Forecasts stdev/mean,TRUE,Information Uncertainty,0.5
+Number of Analyst who cover the company Yoy Growth,FALSE,Information Uncertainty,0.5
+Trend Line of CPS,TRUE,Growth,1
+Fixed Assets % Common Equity,FALSE,Financial Quality,0.2
+Fixed Charge Coverage Ratio,TRUE,Financial Quality,0.2
+Long Term Debt % Common Equity,FALSE,Financial Quality,0.2
+Total Assets/Common Equity,FALSE,Financial Quality,0.2
+Total Debt % Common Equity,FALSE,Financial Quality,0.333333333
+Cash Earnings Return On Equity,TRUE,Earnings Quality,0.333333333
+Total Asset Turnover,TRUE,Earnings Quality,0.333333333
+EarningMomentum,TRUE,Earning Momentum,0.333333333
+Up Down to consensus EPS,TRUE,Earning Momentum,0.333333333
+Up Down to consensus SALES,TRUE,Earning Momentum,0.333333333
+Excess_RSI,FALSE,Contrarian,0.5
+Long term relative strength index,FALSE,Contrarian,0.5

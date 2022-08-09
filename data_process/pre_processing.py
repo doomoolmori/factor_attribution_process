@@ -3,7 +3,7 @@ from data_process import calculation_rank
 from data_process import calculation_pct
 from data_process import data_path
 from itertools import *
-
+import pandas as pd
 
 def strategy_space(numbers):
     all_score_space = product([0, 0.2, 0.4, 0.6, 0.8, 1], repeat=numbers)
@@ -12,6 +12,10 @@ def strategy_space(numbers):
 
 class PreProcessing:
     def __init__(self, universe):
+        self.factor_info = pd.read_csv(
+            f'{data_path.FACTOR_CATEGORY_PATH}/'
+            f'{data_path.FACTOR_CATEGORY_NAME}')
+
         self.raw_data_path = data_path.RAW_DATA_PATH
         self.raw_data_name = data_path.RAW_DATA_NAME
         if universe == 'korea':
@@ -94,7 +98,8 @@ class PreProcessing:
 
     def _rank_data_processing(self):
         dict_of_rank = calculation_rank.rank_dict_add(
-            data=self.dict_of_pandas)
+            data=self.dict_of_pandas,
+            factor_info=self.factor_info)
         data_read.save_to_pickle(
             any_=dict_of_rank,
             path=self.path_dict['DATA_PATH'],
