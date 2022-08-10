@@ -1,5 +1,6 @@
 from data_process import data_read
 from data_process import calculation_rank
+from data_process import calculation_z_score
 from data_process import calculation_pct
 from data_process import data_path
 from itertools import *
@@ -52,7 +53,7 @@ class PreProcessing:
             self.adj_ri = self.adj_ri.set_index('date_')
         except:
             self._ri_data_processing()
-
+        """
         try:  # pct data
             self.adj_pct = data_read.read_csv_(
                 path=self.path_dict['DATA_PATH'],
@@ -61,22 +62,22 @@ class PreProcessing:
             self.adj_pct = self.adj_pct.set_index('date_')
         except:
             self._pct_data_processing()
-
+        """
         try:  # all space set
             self.all_space_set = data_read.read_pickle(
                 path=self.path_dict['DATA_PATH'],
                 name='all_space_set.pickle')
             print('already calculation all space_set')
         except:
-            all_space_set = strategy_space(
-                numbers=len(self.dict_of_rank.keys()))
-            data_read.save_to_pickle(
-                any_=all_space_set,
+            self._all_space_set_processing()
+
+        try:  # z score dict
+            self.z_score_factor_dict = data_read.read_pickle(
                 path=self.path_dict['DATA_PATH'],
-                name='all_space_set.pickle')
-            self.all_space_set = data_read.read_pickle(
-                path=self.path_dict['DATA_PATH'],
-                name='all_space_set.pickle')
+                name='z_scored_factor.pickle')
+            print('already calculation z_score_factor')
+        except:
+            self._z_score_processing()
 
     def _raw_data_processing(self):
         raw_data_df = data_read.read_raw_data_df(
@@ -133,6 +134,31 @@ class PreProcessing:
         self.adj_pct = self.adj_pct.set_index('date_')
         print('calculation adj pct')
 
+    def _all_space_set_processing(self):
+        all_space_set = strategy_space(
+            numbers=len(self.dict_of_rank.keys()))
+        data_read.save_to_pickle(
+            any_=all_space_set,
+            path=self.path_dict['DATA_PATH'],
+            name='all_space_set.pickle')
+        self.all_space_set = data_read.read_pickle(
+            path=self.path_dict['DATA_PATH'],
+            name='all_space_set.pickle')
+        print('calculation all space')
+
+    def _z_score_processing(self):
+        z_score_factor_dict = calculation_z_score.make_z_scored_factor_dict(
+            data=self.dict_of_pandas,
+            factor_info=self.factor_info
+        )
+        data_read.save_to_pickle(
+            any_=z_score_factor_dict,
+            path=self.path_dict['DATA_PATH'],
+            name='z_scored_factor.pickle')
+        self.z_score_factor_dict = data_read.read_pickle(
+            path=self.path_dict['DATA_PATH'],
+            name='z_scored_factor.pickle')
+        print('calculation z_score_factor')
 
 if __name__ == "__main__":
     pre_process = PreProcessing(universe='korea')

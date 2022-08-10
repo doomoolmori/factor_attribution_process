@@ -62,7 +62,7 @@ def factor_rank_sum(arr_of_rank_arr: np.array, score_weight_arr: np.array) -> np
 def final_rank_array(factor_rank_sum_arr: np.array, epsilon_arr: np.array) -> np.array:
     """
     epsilon을 더하는 이유는 동점등수일 때, 우선순위를 주기위함.
-    epsilon이 높을 수록 높은 등수
+    epsilon이 높을 수록 우선순위
     """
     return _rank(factor_rank_sum_arr + epsilon_arr).astype(np.float16)
 
@@ -110,28 +110,55 @@ def loop_pick_stock_(kwargs):
         picked_stock = picked_stock_arr.flatten()
         picked_stock_idx = np.where(picked_stock == True)
         picked_stock_idx = picked_stock_idx[0].astype(np.int32)
-        name = f'{score_weight}.pickle'
+        name = f'{score_weight}_picked.pickle'
         # save dictionary to pickle file
         data_read.save_to_pickle(any_=picked_stock_idx,
                                  path=kwargs['path'],
                                  name=name)
 
 
+def _read_stock_picking_dict(pre_process):
+    import os
+    file_list = os.listdir(pre_process.path_dict['STRATEGY_WEIGHT_PATH'])
+    list_ = []
+    name_list = []
+    for file_name in file_list:
+        if 'picked' in file_name:
+            #print(f'read_{file_name}')
+            weight_arr = data_read.read_pickle(
+                path=pre_process.path_dict['STRATEGY_WEIGHT_PATH'],
+                name=file_name).copy()
+            list_.append(weight_arr)
+            name_list.append(file_name.split('_picked.pickle')[0])
+    return dict(zip(name_list, list_))
+
+
+def get_stock_picking_dict(pre_process, n_top=20, asyncio_=True):
+    try:
+        result = _read_stock_picking_dict(pre_process=pre_process)
+    except:
+        pass
+    if len(result) == 0:
+        StockPick(pre_process=pre_process, n_top=n_top, asyncio_=asyncio_)
+        result = _read_stock_picking_dict(pre_process=pre_process)
+    return result
+
+
 if __name__ == "__main__":
     # TODO 현재 TOP20개로 뽑고있는데, 분위별로 뽑는 작업도 필요함.
     pre_process = pre_processing.PreProcessing(universe='korea')
     # no asyncio
-    #StockPick(pre_process=pre_process, n_top=20, asyncio_=False)
+    # StockPick(pre_process=pre_process, n_top=20, asyncio_=False)
     # asyncio
-    StockPick(pre_process=pre_process, n_top=30, asyncio_=True)
-
+    StockPick(pre_process=pre_process, n_top=20, asyncio_=True)
 
     """
     Checking 
-    
+    from data_process import calculation_rank
+    import numpy as np
     check_ = data_read.read_pickle(
         path=pre_process.path_dict['STRATEGY_WEIGHT_PATH'],
-        name=f'{pre_process.all_space_set[77]}.pickle')
+        name=f'{pre_process.all_space_set[77]}_picked.pickle')
 
     space_set = pre_process.all_space_set
     survive_df = calculation_rank.make_survive_df(pre_process.dict_of_pandas['RI'])
@@ -151,7 +178,7 @@ if __name__ == "__main__":
         arr_of_rank_arr=arr_of_rank_arr,
         epsilon_arr=survive_epsilon_arr,
         score_weight=pre_process.all_space_set[77],
-        n_top=30)
+        n_top=20)
 
     temp_arr = np.zeros(len(temp) * len(temp.T))
     temp_arr[check_] = 1

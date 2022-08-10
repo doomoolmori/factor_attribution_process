@@ -16,6 +16,32 @@ bm_df = api.get_adj_price(["KOSPI Index"], '1990-01-01', '2022-03-31')
 bm_price_df = bm_df.resample('Q').last()
 bm_ret_df = bm_price_df.pct_change().dropna()
 
+import time
+start = time.time()
+print("time :", time.time() - start)
+ret(ret_df)
+sd(ret_df)
+sharpe(ret_df)
+min_ret(ret_df)
+max_ret(ret_df)
+upside_frequency(ret_df)
+up_capture(ret_df, bm_ret_df)
+down_capture(ret_df, bm_ret_df)
+up_number(ret_df, bm_ret_df)
+down_number(ret_df, bm_ret_df)
+down_number(ret_df, bm_ret_df)
+
+up_percent(ret_df, bm_ret_df)
+down_percent(ret_df, bm_ret_df)
+average_drawdown(price_df)
+max_drawdown(price_df)
+tracking_error(ret_df, bm_ret_df)
+pain_index(price_df)
+average_length(price_df)
+beta(ret_df, bm_ret_df)
+beta_bull(ret_df, bm_ret_df)
+beta_bear(ret_df, bm_ret_df)
+print("time :", time.time() - start)
 
 # Return
 def ret(ret_df):
@@ -72,6 +98,9 @@ def down_number(ret_df, bm_ret_df):
     bm_down_index = bm_ret_df[bm_ret_df < 0].dropna().index
     ret_df = ret_df.loc[bm_down_index]
     return len(ret_df[ret_df < 0].dropna()) / len(bm_ret_df.loc[bm_down_index])
+
+
+
 
 
 # UpPercent
