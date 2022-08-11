@@ -36,11 +36,16 @@ if __name__ == "__main__":
     from backtest_process import calculate_stats as cs
     sts = cs.Stats()
     sts.set_rebal(rebal=rebal)
-    sts.set_bm_series(bm_series=bulk_backtest_df.iloc[:, 0])
-    start = time.time()
     total_list = []
-    for i in range(0, len(bulk_backtest_df.columns)):
-        sts.set_backtest_series(backtest_series=bulk_backtest_df.iloc[:, i])
+
+    bulk_backtest_df = bulk_backtest_df.to_numpy(dtype=np.float32)
+
+    (np.diff(bulk_backtest_df[:, 0]) / bulk_backtest_df[:, 0][1:])
+
+    sts.set_bm_series(bm_series=bulk_backtest_df[:, 0])
+    start = time.time()
+    for i in range(0, len(bulk_backtest_df.T)):
+        sts.set_backtest_series(backtest_series=bulk_backtest_df[:, i])
         sts.check()
         dt = [cs.ret(ret_arr=sts.ret_arr, freq=sts.freq),
               cs.sd(ret_arr=sts.ret_arr, freq=sts.freq),
@@ -94,17 +99,3 @@ if __name__ == "__main__":
         total_list.append(np.array(dt, dtype=np.float16))
     print("time :", time.time() - start)
 
-    """
-    exposure sample
-    """
-    exposure_series = data_read.read_pickle(path=pre_process.path_dict['STRATEGY_WEIGHT_PATH'],
-                                            name=f'{sample}_exposure.pickle')
-    idx_list = []
-    for i, time in enumerate(pre_process.adj_ri.index):
-        if time in backtest_series.index:
-            idx_list.append(i)
-
-    exposure_df = pd.DataFrame(exposure_series[:, idx_list].T)
-    exposure_df.columns = sample_dict.keys()
-    exposure_df.index = backtest_series.index
-    exposure_df['backtest'] = backtest_series

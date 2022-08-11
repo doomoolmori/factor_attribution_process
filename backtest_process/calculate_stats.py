@@ -32,24 +32,22 @@ class Stats:
         elif rebal == 'm':
             self.freq = 12
 
-    def set_backtest_series(self, backtest_series: pd.Series):
-        self.ret_arr = np.array(backtest_series.pct_change().dropna(), dtype=np.float32)
-        self.backtest_series = np.array(backtest_series, dtype=np.float32)
+    def set_backtest_series(self, backtest_series: np.array):
+        self.backtest_series = backtest_series
+        self.ret_arr = (np.diff(backtest_series) / backtest_series[1:])
         self.up_boolean = self.ret_arr > 0
         self.down_boolean = self.ret_arr < 0
         self.backtest_drawdown = series_drawdown(price_df=self.backtest_series)
-        self.backtest_time = backtest_series.dropna().index
 
-    def set_bm_series(self, bm_series: pd.Series):
-        self.bm_series = np.array(bm_series, dtype=np.float32)
-        self.bm_ret_arr = np.array(bm_series.pct_change().dropna(), dtype=np.float32)
+    def set_bm_series(self, bm_series: np.array):
+        self.bm_series = bm_series
+        self.bm_ret_arr = (np.diff(bm_series) / bm_series[1:])
         self.bm_up_boolean = self.bm_ret_arr > 0
         self.bm_down_boolean = self.bm_ret_arr < 0
         self.bm_drawdown = series_drawdown(price_df=self.bm_series)
-        self.bm_time = bm_series.dropna().index
 
     def check(self):
-        assert (self.bm_time != self.backtest_time).sum() == 0, \
+        assert len(self.ret_arr) == len(self.bm_ret_arr), \
             'backtest와 bm의 구간이 동일해야 합니다'
 
 
