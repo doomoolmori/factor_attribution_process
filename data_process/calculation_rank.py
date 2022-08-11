@@ -3,6 +3,7 @@ from data_process import data_path
 import pandas as pd
 import numpy as np
 
+# TODO 만약 필터조건이 있으면 여기서 걸러줘야함 ex) 1_filter == (mkt > 300m)
 
 def rank_dict_add(data: dict, factor_info: pd.DataFrame) -> dict:
     """
