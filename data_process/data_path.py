@@ -24,7 +24,7 @@ KOREA_NAME_DICT = {
 US_PATH_DICT = {
     'DATA_PATH': f'{os.getcwd()}/data/us',
     'STRATEGY_WEIGHT_PATH': f'{os.getcwd()}/data/us/strategy_weight',
-    'STRATEGY_STATS_PATH': f'{os.getcwd()}/data/korea/strategy_stats'}
+    'STRATEGY_STATS_PATH': f'{os.getcwd()}/data/us/strategy_stats'}
 
 US_NAME_DICT = {
     'UNIVERSE': 'Univ_S&P500',

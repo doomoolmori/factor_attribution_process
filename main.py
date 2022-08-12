@@ -9,7 +9,7 @@ if __name__ == "__main__":
     rebal = 'q'
     cost = 0.003
     n_top = 20
-    universe = 'us'
+    universe = 'korea'
     pre_process = pre_processing.PreProcessing(universe=universe)
     picking_dict = stock_picking.get_stock_picking_dict(
         pre_process=pre_process,
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     stats.set_optional(
         rebal=rebal,
         in_sample_year=10,
-        out_sample_year=1,
+        out_sample_year=0,
         path=pre_process.path_dict['STRATEGY_STATS_PATH'])
     stats.loop_make_stats_df()
 print("time :", time.time() - start)
