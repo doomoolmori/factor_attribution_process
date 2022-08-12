@@ -1,6 +1,5 @@
 import os
 
-
 KOREA_UNIVERSE = 'Univ_KOSPI&KOSDAQ'
 US_UNIVERSE = 'Univ_S&P500'
 
@@ -12,7 +11,8 @@ RAW_DATA_NAME = '2022-05-27_cosmos-univ-with-factors_with-finval_global_monthly.
 
 KOREA_PATH_DICT = {
     'DATA_PATH': f'{os.getcwd()}/data/korea',
-    'STRATEGY_WEIGHT_PATH': f'{os.getcwd()}/data/korea/strategy_weight'}
+    'STRATEGY_WEIGHT_PATH': f'{os.getcwd()}/data/korea/strategy_weight',
+    'STRATEGY_STATS_PATH': f'{os.getcwd()}/data/korea/strategy_stats'}
 
 KOREA_NAME_DICT = {
     'UNIVERSE': 'Univ_KOSPI&KOSDAQ',
@@ -23,7 +23,8 @@ KOREA_NAME_DICT = {
 
 US_PATH_DICT = {
     'DATA_PATH': f'{os.getcwd()}/data/us',
-    'STRATEGY_WEIGHT_PATH': f'{os.getcwd()}/data/us/strategy_weight'}
+    'STRATEGY_WEIGHT_PATH': f'{os.getcwd()}/data/us/strategy_weight',
+    'STRATEGY_STATS_PATH': f'{os.getcwd()}/data/korea/strategy_stats'}
 
 US_NAME_DICT = {
     'UNIVERSE': 'Univ_S&P500',
@@ -31,6 +32,3 @@ US_NAME_DICT = {
     'RANK_NAME': 'us_dict_of_rank.pickle',
     'RI_NAME': 'adj_ri.csv',
     'PCT_NAME': 'adj_pct.csv'}
-
-
-

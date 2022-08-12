@@ -28,7 +28,7 @@ class PreProcessing:
             self.path_dict = data_path.US_PATH_DICT
             self.name_dict = data_path.US_NAME_DICT
         data_read.make_path(path=self.path_dict['STRATEGY_WEIGHT_PATH'])
-
+        data_read.make_path(path=self.path_dict['STRATEGY_STATS_PATH'])
         try:  # raw data
             self.dict_of_pandas = data_read.read_pickle(
                 path=self.path_dict['DATA_PATH'],

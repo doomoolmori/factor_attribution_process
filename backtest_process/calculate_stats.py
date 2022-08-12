@@ -32,23 +32,41 @@ class Stats:
         elif rebal == 'm':
             self.freq = 12
 
-    def set_backtest_series(self, backtest_series: np.array):
-        self.backtest_series = backtest_series
-        self.ret_arr = (np.diff(backtest_series) / backtest_series[1:])
+    def set_backtest_arr(self, backtest_arr: np.array):
+        self.backtest_arr = backtest_arr
+        self.ret_arr = get_ret_arr(arr=self.backtest_arr)
         self.up_boolean = self.ret_arr > 0
         self.down_boolean = self.ret_arr < 0
-        self.backtest_drawdown = series_drawdown(price_df=self.backtest_series)
+        self.backtest_drawdown = series_drawdown(price_df=self.backtest_arr)
 
-    def set_bm_series(self, bm_series: np.array):
-        self.bm_series = bm_series
-        self.bm_ret_arr = (np.diff(bm_series) / bm_series[1:])
+    def set_bm_arr(self, bm_arr: np.array):
+        self.bm_arr = bm_arr
+        self.bm_ret_arr = get_ret_arr(arr=self.bm_arr)
         self.bm_up_boolean = self.bm_ret_arr > 0
         self.bm_down_boolean = self.bm_ret_arr < 0
-        self.bm_drawdown = series_drawdown(price_df=self.bm_series)
+        self.bm_drawdown = series_drawdown(price_df=self.bm_arr)
+
+    def set_out_backtest_arr(self, out_backtest_arr: np.array):
+        self.out_backtest_arr = out_backtest_arr
+        self.out_ret_arr = get_ret_arr(arr=self.out_backtest_arr)
+        self.out_up_boolean = self.out_ret_arr > 0
+        self.out_down_boolean = self.out_ret_arr < 0
+        self.out_backtest_drawdown = series_drawdown(price_df=self.out_backtest_arr)
+
+    def set_out_bm_arr(self, out_bm_arr: np.array):
+        self.out_bm_arr = out_bm_arr
+        self.out_bm_ret_arr = get_ret_arr(arr=self.out_bm_arr)
+        self.out_bm_up_boolean = self.out_bm_ret_arr > 0
+        self.out_bm_down_boolean = self.out_bm_ret_arr < 0
+        self.out_bm_drawdown = series_drawdown(price_df=self.out_bm_arr)
 
     def check(self):
         assert len(self.ret_arr) == len(self.bm_ret_arr), \
             'backtest와 bm의 구간이 동일해야 합니다'
+
+def get_ret_arr(arr:np.array) -> np.array:
+    return (np.diff(arr, axis=0) / arr[:-1])
+
 
 
 def ret(ret_arr: np.array, freq: int) -> float:
@@ -150,6 +168,15 @@ def max_drawdown(drawdown: np.array) -> float:
     return drawdown.min()
 
 
+# Alpha
+def alpha(
+        ret_arr: np.array,
+        bm_ret_arr: np.array,
+        freq: int) -> float:
+    ret_diff = ret_arr - bm_ret_arr
+    return (1 + ret_diff.mean()) ** freq - 1
+
+
 # TrackingError
 def tracking_error(
         ret_arr: np.array,
@@ -203,6 +230,78 @@ def beta_bear(
 # TODO turnover
 
 
+def bulk_stats_dict(stats) -> dict:
+    stats_dict = {}
+    stats_dict['Return'] = ret(
+        ret_arr=stats.ret_arr,
+        freq=stats.freq)
+    stats_dict['SD'] = sd(
+        ret_arr=stats.ret_arr, freq=stats.freq)
+    stats_dict['Sharpe'] = stats_dict['Return']/stats_dict['SD']
+    stats_dict['MinReturn'] = min_ret(
+        ret_arr=stats.ret_arr)
+    stats_dict['MaxReturn'] = max_ret(
+        ret_arr=stats.ret_arr)
+    stats_dict['UpsideFrequency'] = upside_frequency(
+        ret_arr=stats.ret_arr,
+        up_boolean=stats.up_boolean)
+    stats_dict['UpCapture'] = up_capture(
+        ret_arr=stats.ret_arr,
+        bm_ret_arr=stats.bm_ret_arr,
+        bm_up_boolean=stats.bm_up_boolean)
+    stats_dict['DownCapture'] = down_capture(
+        ret_arr=stats.ret_arr,
+        bm_ret_arr=stats.bm_ret_arr,
+        bm_down_boolean=stats.bm_down_boolean)
+    stats_dict['UpNumber'] = up_number(
+        ret_arr=stats.ret_arr,
+        bm_up_boolean=stats.bm_up_boolean)
+    stats_dict['DownNumber'] = down_number(
+        ret_arr=stats.ret_arr,
+        bm_down_boolean=stats.bm_down_boolean)
+    stats_dict['UpPercent'] = up_percent(
+        ret_arr=stats.ret_arr,
+        bm_ret_arr=stats.bm_ret_arr,
+        bm_up_boolean=stats.bm_up_boolean)
+    stats_dict['DownPercent'] = down_percent(
+        ret_arr=stats.ret_arr,
+        bm_ret_arr=stats.bm_ret_arr,
+        bm_down_boolean=stats.bm_down_boolean)
+    stats_dict['AverageDrawdown'] = average_drawdown(
+        drawdown=stats.backtest_drawdown)
+    stats_dict['MaxDrawdown'] = max_drawdown(
+        drawdown=stats.backtest_drawdown)
+    stats_dict['TrackingError'] = tracking_error(
+        ret_arr=stats.ret_arr,
+        bm_ret_arr=stats.bm_ret_arr,
+        freq=stats.freq)
+    stats_dict['PainIndex'] = pain_index(
+        drawdown=stats.backtest_drawdown)
+    stats_dict['AverageLength'] = average_length(
+        drawdown=stats.backtest_drawdown)
+    stats_dict['Alpha'] = alpha(
+        ret_arr=stats.ret_arr,
+        bm_ret_arr=stats.bm_ret_arr,
+        freq=stats.freq)
+    stats_dict['Beta'] = beta(
+        ret_arr=stats.ret_arr,
+        bm_ret_arr=stats.bm_ret_arr)
+    stats_dict['Beta.Bull'] = beta_bull(
+        ret_arr=stats.ret_arr,
+        bm_ret_arr=stats.bm_ret_arr,
+        bm_up_boolean=stats.bm_up_boolean)
+    stats_dict['Beta.Bear'] = beta_bear(
+        ret_arr=stats.ret_arr,
+        bm_ret_arr=stats.bm_ret_arr,
+        bm_down_boolean=stats.bm_down_boolean)
+    stats_dict['OutReturn'] = ret(
+        ret_arr=stats.out_ret_arr,
+        freq=stats.freq)
+    stats_dict['OutSD'] = sd(
+        ret_arr=stats.out_ret_arr,
+        freq=stats.freq)
+    return stats_dict
+
 if __name__ == "__main__":
     from data_process import pre_processing
     from data_process import data_read
@@ -241,38 +340,3 @@ if __name__ == "__main__":
     bm_series = data_read.read_pickle(path=pre_process.path_dict['STRATEGY_WEIGHT_PATH'],
                                       name=f'{name_list[1]}_backtest_{rebal}.pickle')
 
-    """
-    stat sample
-    """
-    sts = Stats()
-
-    sts.set_rebal(rebal=rebal)
-    sts.set_bm_series(bm_series=bm_series)
-
-    start = time.time()
-    for i in range(0, 1000):
-        sts.set_backtest_series(backtest_series=backtest_series)
-        sts.check()
-        sts.ret()
-        sts.sd()
-        sts.sharpe()
-        sts.min_ret()
-        sts.max_ret()
-        sts.upside_frequency()
-        sts.up_capture()
-        sts.down_capture()
-        sts.up_number()
-        sts.down_number()
-
-        sts.up_percent()
-        sts.down_percent()
-        sts.tracking_error()
-        sts.beta()
-        sts.beta_bull()
-        sts.beta_bear()
-
-        sts.average_drawdown(drawdown=sts.backtest_drawdown)
-        sts.max_drawdown(drawdown=sts.backtest_drawdown)
-        sts.pain_index(drawdown=sts.backtest_drawdown)
-        sts.average_length(drawdown=sts.backtest_drawdown)
-    print("time :", time.time() - start)

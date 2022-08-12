@@ -63,5 +63,40 @@ def createFolder(directory):
     except OSError:
         print('error')
 
+
 def make_path(path):
     createFolder(path)
+
+
+def bulk_backtest_df(
+        strategy_name_list: list,
+        raw_path: str,
+        save_path: str,
+        rebal: str) -> pd.DataFrame:
+    try:
+        result = read_csv_(path=save_path,
+                           name=f'bulk_backtest_{rebal}.csv')
+        result = result.set_index('date_')
+    except:
+        series_list = []
+        for strategy_name in strategy_name_list:
+            file_name = f'{strategy_name}_backtest_{rebal}.pickle'
+            series_list.append(read_pickle(
+                path=raw_path,
+                name=file_name))
+        result = pd.concat(series_list, 1)
+        result.columns = strategy_name_list
+        save_to_csv(df=result,
+                    path=save_path,
+                    name=f'bulk_backtest_{rebal}.csv')
+    return result
+
+
+def bulk_exposure_dict(strategy_name_list: list, path: str) -> dict:
+    exposure_dict = {}
+    for strategy_name in strategy_name_list:
+        file_name = f'{strategy_name}_exposure.pickle'
+        exposure_dict[strategy_name] = read_pickle(
+            path=path,
+            name=file_name)
+    return exposure_dict

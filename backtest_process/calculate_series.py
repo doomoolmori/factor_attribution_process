@@ -132,7 +132,7 @@ if __name__ == '__main__':
     picking_dict = stock_picking.get_stock_picking_dict(pre_process=pre_process)
 
     data_read.read_pickle(path=pre_process.path_dict['STRATEGY_WEIGHT_PATH'],
-                          name=f'{list(picking_dict.keys())[365]}_backtest.pickle')
+                          name=f'{list(picking_dict.keys())[365]}_backtest_q.pickle')
 
     number_of_columns = len(pre_process.adj_ri.columns)
     number_of_raws = len(pre_process.adj_ri)
