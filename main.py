@@ -2,6 +2,8 @@ from data_process import pre_processing
 from data_process import data_read
 from backtest_process import stock_picking
 from backtest_process import serial_stats
+from backtest_process import calculate_exposure
+from backtest_process import calculate_series
 import time
 
 start = time.time()
@@ -17,9 +19,15 @@ if __name__ == "__main__":
         asyncio_=True)
 
     # 계산 완료되면 돌릴 필요 없어요
-    # calculate_exposure.calculate_series_exposure(pre_process=pre_process, asyncio_=True)
+    calculate_exposure.calculate_series_exposure(
+        pre_process=pre_process,
+        asyncio_=True)
     # 계산 완료되면 돌릴 필요 없어요
-    # calculate_series.calculate_series_backtest(pre_process=pre_process, cost=cost, rebal=rebal, asyncio_=True)
+    calculate_series.calculate_series_backtest(
+        pre_process=pre_process,
+        cost=cost,
+        rebal=rebal,
+        asyncio_=True)
 
     bulk_backtest_df = data_read.bulk_backtest_df(
         strategy_name_list=list(picking_dict.keys()),
