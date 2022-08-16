@@ -6,28 +6,29 @@ from backtest_process import calculate_exposure
 from backtest_process import calculate_series
 import time
 
-start = time.time()
+
 if __name__ == "__main__":
     rebal = 'q'
     cost = 0.003
     n_top = 20
     universe = 'korea'
-    pre_process = pre_processing.PreProcessing(universe=universe)
-    picking_dict = stock_picking.get_stock_picking_dict(
-        pre_process=pre_process,
-        n_top=n_top,
-        asyncio_=True)
+    pre_process = pre_processing.PreProcessing(universe=universe, n_top=20)
 
-    # 계산 완료되면 돌릴 필요 없어요
-    calculate_exposure.calculate_series_exposure(
-        pre_process=pre_process,
-        asyncio_=True)
-    # 계산 완료되면 돌릴 필요 없어요
-    calculate_series.calculate_series_backtest(
-        pre_process=pre_process,
-        cost=cost,
-        rebal=rebal,
-        asyncio_=True)
+    # filter마다 stock_picking
+    start = time.time()
+    for filter_number in pre_process.filter_info['number']:
+        stock_picking.StockPick(
+            pre_process=pre_process,
+            filter_number=filter_number,
+            asyncio_=True)
+    print("time :", time.time() - start)
+    # picking_data_load
+    picking_dict = stock_picking.get_stock_picking_dict(pre_process=pre_process)
+
+    # 계산 완료되면 돌릴 필요 없어요 (exposure)
+    calculate_exposure.calculate_series_exposure(pre_process=pre_process, asyncio_=True)
+    # 계산 완료되면 돌릴 필요 없어요 (back_test)
+    calculate_series.calculate_series_backtest(pre_process=pre_process, cost=cost, rebal=rebal, asyncio_=True)
 
     bulk_backtest_df = data_read.bulk_backtest_df(
         strategy_name_list=list(picking_dict.keys()),
@@ -45,4 +46,4 @@ if __name__ == "__main__":
         out_sample_year=0,
         path=pre_process.path_dict['STRATEGY_STATS_PATH'])
     stats.loop_make_stats_df()
-print("time :", time.time() - start)
+

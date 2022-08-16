@@ -1,0 +1,14 @@
+﻿Filter,decreasing,sub_top_N_ratio,number
+NO,,,0
+Price Trend - 26 Week,TRUE,5,1
+Price Trend - 26 Week,FALSE,5,2
+Price/Earnings Ratio - Current,TRUE,5,3
+Market Capitalization - Current (U.S.$),TRUE,1.5,4
+Foreign Sales % Total Sales,TRUE,5,5
+Fixed Assets % Common Equity,TRUE,5,6
+Long Term Debt % Common Equity,FALSE,5,7
+Capital Expenditure % Total Assets,TRUE,5,8
+Average Daily Trading Volume over 6 months  / number of shares,TRUE,5,9
+Operating Income - 1 Yr Annual Growth,TRUE,5,10
+Net Margin,TRUE,5,11
+Market Capitalization - Current (U.S.$),FALSE,5,12

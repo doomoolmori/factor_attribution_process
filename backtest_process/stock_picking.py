@@ -7,7 +7,7 @@ from data_process import pre_processing
 
 
 class StockPick:
-    def __init__(self, pre_process, n_top=20, asyncio_=True):
+    def __init__(self, pre_process, filter_number=0, asyncio_=True):
         space_set = pre_process.all_space_set
         survive_df = calculation_rank.make_survive_df(pre_process.dict_of_pandas['RI'])
         epsilon_df = pre_process.dict_of_pandas['Market Capitalization - Current (U.S.$)']
@@ -18,7 +18,7 @@ class StockPick:
         survive_epsilon_arr /= (np.nanmax(survive_epsilon_arr) * 10)
 
         arr_of_rank_arr = []
-        for rank_arr in (pre_process.dict_of_rank.values()):
+        for rank_arr in (pre_process.dict_of_rank[filter_number].values()):
             arr_of_rank_arr.append(rank_arr.to_numpy())
         arr_of_rank_arr = np.array(arr_of_rank_arr, dtype=np.float16)
 
@@ -27,7 +27,8 @@ class StockPick:
         input_dict['epsilon_arr'] = survive_epsilon_arr
         input_dict['space_set'] = space_set
         input_dict['path'] = pre_process.path_dict['STRATEGY_WEIGHT_PATH']
-        input_dict['n_top'] = int(n_top)
+        input_dict['n_top'] = int(pre_process.n_top)
+        input_dict['filter_number'] = filter_number
         if asyncio_ == True:
             asyncio_dict = {}
             asyncio_dict['function'] = loop_pick_stock_
@@ -110,7 +111,7 @@ def loop_pick_stock_(kwargs):
         picked_stock = picked_stock_arr.flatten()
         picked_stock_idx = np.where(picked_stock == True)
         picked_stock_idx = picked_stock_idx[0].astype(np.int32)
-        name = f'{score_weight}_picked.pickle'
+        name = f'{kwargs["filter_number"]}-{score_weight}_picked.pickle'
         # save dictionary to pickle file
         data_read.save_to_pickle(any_=picked_stock_idx,
                                  path=kwargs['path'],
@@ -133,13 +134,13 @@ def _read_stock_picking_dict(pre_process):
     return dict(zip(name_list, list_))
 
 
-def get_stock_picking_dict(pre_process, n_top=20, asyncio_=True):
+def get_stock_picking_dict(pre_process):
     try:
         result = _read_stock_picking_dict(pre_process=pre_process)
     except:
         pass
     if len(result) == 0:
-        StockPick(pre_process=pre_process, n_top=n_top, asyncio_=asyncio_)
+        #StockPick(pre_process=pre_process, filter_number=filter_number, asyncio_=asyncio_)
         result = _read_stock_picking_dict(pre_process=pre_process)
     return result
 

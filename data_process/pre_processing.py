@@ -12,10 +12,14 @@ def strategy_space(numbers):
 
 
 class PreProcessing:
-    def __init__(self, universe):
+    def __init__(self, universe, n_top: int = 20):
+        self.n_top = n_top
         self.factor_info = pd.read_csv(
             f'{data_path.FACTOR_CATEGORY_PATH}/'
             f'{data_path.FACTOR_CATEGORY_NAME}')
+        self.filter_info = pd.read_csv(
+            f'{data_path.FACTOR_FILTER_PATH}/'
+            f'{data_path.FACTOR_FILTER_NAME}')
 
         self.raw_data_path = data_path.RAW_DATA_PATH
         self.raw_data_name = data_path.RAW_DATA_NAME
@@ -98,6 +102,20 @@ class PreProcessing:
         print('calculation dict_of_pandas')
 
     def _rank_data_processing(self):
+
+        dict_of_rank = calculation_rank.filtered_rank_dict(
+            data=self.dict_of_pandas,
+            factor_info=self.factor_info,
+            filter_info=self.filter_info,
+            n_top=self.n_top)
+        data_read.save_to_pickle(
+            any_=dict_of_rank,
+            path=self.path_dict['DATA_PATH'],
+            name=self.name_dict['RANK_NAME'])
+        self.dict_of_rank = data_read.read_pickle(
+            path=self.path_dict['DATA_PATH'],
+            name=self.name_dict['RANK_NAME'])
+        """
         dict_of_rank = calculation_rank.rank_dict_add(
             data=self.dict_of_pandas,
             factor_info=self.factor_info)
@@ -108,6 +126,7 @@ class PreProcessing:
         self.dict_of_rank = data_read.read_pickle(
             path=self.path_dict['DATA_PATH'],
             name=self.name_dict['RANK_NAME'])
+        """
 
     def _ri_data_processing(self):
         adj_ri = calculation_pct.make_adj_ri_df(
@@ -163,3 +182,4 @@ class PreProcessing:
 if __name__ == "__main__":
     pre_process = PreProcessing(universe='korea')
 
+    pre_process.dict_of_rank[1]['Earning Momentum'].sum(1)

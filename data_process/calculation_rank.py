@@ -3,9 +3,40 @@ from data_process import data_path
 import pandas as pd
 import numpy as np
 
-# TODO 만약 필터조건이 있으면 여기서 걸러줘야함 ex) 1_filter == (mkt > 300m)
 
-def rank_dict_add(data: dict, factor_info: pd.DataFrame) -> dict:
+def filtered_rank_dict(
+        data: dict,
+        factor_info: pd.DataFrame,
+        filter_info: pd.DataFrame,
+        n_top: int) -> dict:
+    result = {}
+    for flt, dec, ratio, number in zip(filter_info['Filter'],
+                                       filter_info['decreasing'],
+                                       filter_info['sub_top_N_ratio'],
+                                       filter_info['number']):
+        print(flt)
+        if flt == 'NO':
+            filter_df = pd.DataFrame(
+                index=data['RI'].index,
+                columns=data['RI'].columns)
+            filter_df.iloc[:, :] = True
+        else:
+            if dec == True:
+                filter_df = rank_descending(data[flt]) <= n_top * ratio
+            else:
+                filter_df = rank_descending(-data[flt]) <= n_top * ratio
+        rank_dict = rank_dict_add(
+            data=data,
+            factor_info=factor_info,
+            fundamental_filter_df=filter_df)
+        result[number] = rank_dict
+    return result
+
+# TODO 만약 필터조건이 있으면 여기서 걸러줘야함 ex) 1_filter == (mkt > 300m)
+def rank_dict_add(
+        data: dict,
+        factor_info: pd.DataFrame,
+        fundamental_filter_df: pd.DataFrame) -> dict:
     """
     1. 팩터 방향 설정 (반대 방향의 경우 - 처리) #direction_control
     2. 해당일에 ri값이 존재하지않는 경우 제거 #na_fill_direction_factor_df
@@ -29,9 +60,11 @@ def rank_dict_add(data: dict, factor_info: pd.DataFrame) -> dict:
             survive_df=survive_df,
             factor_df=direction_factor_df,
             min_value=np.nanmin(direction_factor_df))
-        rank_df = rank_ascending(na_fill_direction_factor_df)
+        filtered_factor_df = na_fill_direction_factor_df[fundamental_filter_df]
+        rank_df = rank_ascending(filtered_factor_df)
+        # rank_sum
         rank_sum_dict[category] += rank_df
-
+    # rank of rank_sum
     for rank_sum_factor in rank_sum_factor_list:
         temp = rank_sum_dict[rank_sum_factor]
         rank_sum_dict[rank_sum_factor] = rank_ascending(temp)
@@ -59,7 +92,13 @@ def rank_ascending(df: pd.DataFrame):
     return df.rank(axis=1, method='average', ascending=True)
 
 
+def rank_descending(df: pd.DataFrame):
+    return df.rank(axis=1, method='average', ascending=False)
+
+
 if __name__ == "__main__":
     from data_process import pre_processing
     pre_process = pre_processing.PreProcessing(universe='korea')
-    result = rank_dict_add(pre_process.dict_of_pandas)
+    filter = pd.read_csv('QT_filter.csv')
+
+

@@ -26,7 +26,7 @@ class CalculateExposure:
         input_dict['picking_dict'] = stock_picking.get_stock_picking_dict(pre_process=pre_process)
         input_dict['number_of_columns'] = len(pre_process.adj_ri.columns)
         input_dict['number_of_raws'] = len(pre_process.adj_ri)
-        input_dict['_shape'] = tuple([len(pre_process.dict_of_rank.keys())]) + pre_process.adj_ri.shape
+        input_dict['_shape'] = tuple([len(pre_process.dict_of_rank[0].keys())]) + pre_process.adj_ri.shape
         input_dict['weighted_sum_z_score_arr'] = weighted_sum_z_score_arr
         input_dict['path'] = pre_process.path_dict['STRATEGY_WEIGHT_PATH']
         if asyncio_ == True:
