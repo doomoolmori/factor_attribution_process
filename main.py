@@ -65,3 +65,28 @@ if __name__ == "__main__":
         path=pre_process.path_dict['STRATEGY_STATS_PATH'])
     stats.loop_make_stats_df()
     print("time :", time.time() - start)
+
+
+    """
+    이하는 sample
+    """
+    ## 전략의 exposure
+    import pandas as pd
+    exposure = data_read.read_pickle(path=pre_process.path_dict['STRATEGY_WEIGHT_PATH'],
+                                     name='0-(0, 0, 0, 0, 0, 0, 0, 0, 0, 1)_exposure.pickle')
+    exposure_df =pd.DataFrame(exposure.T,
+                             columns=pre_process.dict_of_rank[0].keys(),
+                             index=pre_process.adj_ri.index)
+
+    ## 전략의 picking stock
+    from backtest_process import calculate_weight
+    import pandas as pd
+    pick = data_read.read_pickle(path=pre_process.path_dict['STRATEGY_WEIGHT_PATH'],
+                                 name='0-(0, 0, 0, 0, 0, 0, 0, 0, 0, 1)_picked.pickle')
+    weight = calculate_weight.make_equal_weight_arr(
+        stock_pick=pick,
+        number_of_columns=len(pre_process.adj_ri.columns),
+        number_of_raws=len(pre_process.adj_ri.index))
+    weight_df = pd.DataFrame(weight,
+                             columns=pre_process.adj_ri.columns,
+                             index=pre_process.adj_ri.index)
