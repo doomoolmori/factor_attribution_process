@@ -7,7 +7,7 @@ import asyncio
 from backtest_process import stock_picking
 
 class CalculateExposure:
-    def __init__(self, pre_process, asyncio_=True):
+    def __init__(self, pre_process, picking_dict: dict, asyncio_=True):
         """
         z_score value sum => sum(stock_weight * (factor)z_score_weight * z_score)
         선형결합이므로 (factor)z_score_weight * z_score를 먼저 구함.
@@ -23,7 +23,7 @@ class CalculateExposure:
         weighted_sum_z_score_arr = np.array(weighted_sum_z_score_list, dtype=np.float32)
 
         input_dict = {}
-        input_dict['picking_dict'] = stock_picking.get_stock_picking_dict(pre_process=pre_process)
+        input_dict['picking_dict'] = picking_dict
         input_dict['number_of_columns'] = len(pre_process.adj_ri.columns)
         input_dict['number_of_raws'] = len(pre_process.adj_ri)
         input_dict['_shape'] = tuple([len(pre_process.dict_of_rank[0].keys())]) + pre_process.adj_ri.shape
@@ -79,8 +79,11 @@ def loop_series_exposure_(kwargs):
                                  name=name)
 
 
-def calculate_series_exposure(pre_process, asyncio_=True):
-    CalculateExposure(pre_process=pre_process, asyncio_=asyncio_)
+def calculate_series_exposure(pre_process, picking_dict: dict, asyncio_=True):
+    CalculateExposure(
+        pre_process=pre_process,
+        picking_dict=picking_dict,
+        asyncio_=asyncio_)
 
 
 if __name__ == '__main__':

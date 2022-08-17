@@ -7,7 +7,7 @@ import asyncio
 from backtest_process import stock_picking
 
 class CalculateBacktest:
-    def __init__(self, pre_process, cost=0.003, rebal='q', asyncio_=True):
+    def __init__(self, pre_process, picking_dict: dict, cost=0.003, rebal='q', asyncio_=True):
 
         adj_ri = pre_process.adj_ri
         month_index = get_month_index(time_index=adj_ri.index, rebal=rebal)
@@ -15,7 +15,7 @@ class CalculateBacktest:
         adj_pct_arr = get_adj_pct_arr_by_index(adj_ri=adj_ri, month_index=month_index)
 
         input_dict = {}
-        input_dict['picking_dict'] = stock_picking.get_stock_picking_dict(pre_process=pre_process)
+        input_dict['picking_dict'] = picking_dict
         input_dict['number_of_columns'] = len(pre_process.adj_ri.columns)
         input_dict['number_of_raws'] = len(pre_process.adj_ri)
         input_dict['rebal'] = rebal
@@ -118,10 +118,16 @@ def loop_series_backtest_(kwargs):
 
 def calculate_series_backtest(
         pre_process,
+        picking_dict: dict,
         cost: float = 0.003,
         rebal: str = 'q',
         asyncio_: str = True):
-    CalculateBacktest(pre_process=pre_process, cost=cost, rebal=rebal,asyncio_=asyncio_)
+    CalculateBacktest(
+        pre_process=pre_process,
+        picking_dict=picking_dict,
+        cost=cost,
+        rebal=rebal,
+        asyncio_=asyncio_)
 
 
 if __name__ == '__main__':

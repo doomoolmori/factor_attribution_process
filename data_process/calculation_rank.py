@@ -4,35 +4,71 @@ import pandas as pd
 import numpy as np
 
 
+def fundamental_filter(
+        df: pd.DataFrame,
+        dec: str,
+        n_top: int,
+        ratio: float) -> pd.DataFrame:
+    if dec == True:
+        fundamental_filter_df = rank_descending(df=df) <= n_top * ratio
+    else:
+        fundamental_filter_df = rank_descending(df=-df) <= n_top * ratio
+    return fundamental_filter_df
+
+
+def under_mkt_filter(mkt_df: pd.DataFrame, percent: float = 0.1):
+    rank = rank_ascending(mkt_df)
+    under_cut = rank.max(1) * percent
+    under_mkt_filter = rank - under_cut.to_numpy().reshape((len(rank), 1))
+    return under_mkt_filter >= 0
+
+
 def filtered_rank_dict(
         data: dict,
         factor_info: pd.DataFrame,
         filter_info: pd.DataFrame,
         n_top: int) -> dict:
+    """
+    fundamental filter별로 계산을 따로함.
+    시가총액 하위 10% 종목들을 거름
+    """
+    mkt_df = data['Market Capitalization - Current (U.S.$)']
+    under_mkt_filter_df = under_mkt_filter(mkt_df)
     result = {}
     for flt, dec, ratio, number in zip(filter_info['Filter'],
                                        filter_info['decreasing'],
                                        filter_info['sub_top_N_ratio'],
                                        filter_info['number']):
-        print(flt)
         if flt == 'NO':
-            filter_df = pd.DataFrame(
+            fundamental_filter_df = under_mkt_filter_df
+        else:
+            df = data[flt]
+            fundamental_filter_df = fundamental_filter(
+                df=df[under_mkt_filter_df],
+                dec=dec,
+                n_top=n_top,
+                ratio=ratio)
+        """
+        if flt == 'NO':
+            fundamental_filter_df = pd.DataFrame(
                 index=data['RI'].index,
                 columns=data['RI'].columns)
-            filter_df.iloc[:, :] = True
+            fundamental_filter_df.iloc[:, :] = True
         else:
             if dec == True:
-                filter_df = rank_descending(data[flt]) <= n_top * ratio
+                # fundemental _filter        
+                fundamental_filter_df = rank_descending(data[flt]) <= n_top * ratio
             else:
-                filter_df = rank_descending(-data[flt]) <= n_top * ratio
+                fundamental_filter_df = rank_descending(-data[flt]) <= n_top * ratio
+        """
         rank_dict = rank_dict_add(
             data=data,
             factor_info=factor_info,
-            fundamental_filter_df=filter_df)
+            fundamental_filter_df=fundamental_filter_df)
         result[number] = rank_dict
     return result
 
-# TODO 만약 필터조건이 있으면 여기서 걸러줘야함 ex) 1_filter == (mkt > 300m)
+
 def rank_dict_add(
         data: dict,
         factor_info: pd.DataFrame,
@@ -72,12 +108,12 @@ def rank_dict_add(
     return rank_sum_dict
 
 
-def make_survive_df(df: pd.DataFrame) -> pd.DataFrame:
-    return df >= 0
-
-
 def direction_control(_any: any, direction: bool) -> any:
     return _any if direction == True else -_any
+
+
+def make_survive_df(df: pd.DataFrame) -> pd.DataFrame:
+    return df >= 0
 
 
 def fill_survive_data_with_min(
@@ -98,7 +134,6 @@ def rank_descending(df: pd.DataFrame):
 
 if __name__ == "__main__":
     from data_process import pre_processing
+
     pre_process = pre_processing.PreProcessing(universe='korea')
-    filter = pd.read_csv('QT_filter.csv')
-
-
+    filter_info = pd.read_csv('QT_filter.csv')
