@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     # 계산 완료되면 돌릴 필요 없어요 filter마다 stock_picking
     start = time.time()
-    for filter_number in (pre_process.filter_info['number']):
+    for filter_number in list(pre_process.filter_info['number'])[:1]:
         stock_picking.StockPick(
             pre_process=pre_process,
             filter_number=filter_number,
@@ -25,7 +25,6 @@ if __name__ == "__main__":
 
     # picking_data_load
     picking_dict = stock_picking.get_stock_picking_dict(pre_process=pre_process)
-
 
     start = time.time()
     # 계산 완료되면 돌릴 필요 없어요 (exposure)
@@ -50,7 +49,6 @@ if __name__ == "__main__":
         raw_path=pre_process.path_dict['STRATEGY_WEIGHT_PATH'],
         save_path=pre_process.path_dict['STRATEGY_STATS_PATH'],
         rebal=rebal)
-
     bm = make_bm.BM(pre_process)
     bm_series = bm.get_bm_series(cost=cost, rebal=rebal)
 
@@ -74,9 +72,9 @@ if __name__ == "__main__":
     import pandas as pd
     exposure = data_read.read_pickle(path=pre_process.path_dict['STRATEGY_WEIGHT_PATH'],
                                      name='0-(0, 0, 0, 0, 0, 0, 0, 0, 0, 1)_exposure.pickle')
-    exposure_df =pd.DataFrame(exposure.T,
-                             columns=pre_process.dict_of_rank[0].keys(),
-                             index=pre_process.adj_ri.index)
+    exposure_df = pd.DataFrame(exposure.T,
+                               columns=pre_process.dict_of_rank[0].keys(),
+                               index=pre_process.adj_ri.index)
 
     ## 전략의 picking stock
     from backtest_process import calculate_weight

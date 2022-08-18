@@ -155,7 +155,7 @@ class PreProcessing:
 
     def _all_space_set_processing(self):
         all_space_set = strategy_space(
-            numbers=len(self.dict_of_rank.keys()))
+            numbers=len(self.dict_of_rank[0].keys()))
         data_read.save_to_pickle(
             any_=all_space_set,
             path=self.path_dict['DATA_PATH'],
