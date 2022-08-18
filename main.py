@@ -14,6 +14,8 @@ if __name__ == "__main__":
     universe = 'korea'
     pre_process = pre_processing.PreProcessing(universe=universe, n_top=20)
 
+    pre_process.dict_of_pandas.keys()
+
     # 계산 완료되면 돌릴 필요 없어요 filter마다 stock_picking
     start = time.time()
     for filter_number in list(pre_process.filter_info['number'])[:1]:
@@ -88,3 +90,5 @@ if __name__ == "__main__":
     weight_df = pd.DataFrame(weight,
                              columns=pre_process.adj_ri.columns,
                              index=pre_process.adj_ri.index)
+
+

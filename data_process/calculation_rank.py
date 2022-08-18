@@ -10,10 +10,13 @@ def fundamental_filter(
         n_top: int,
         ratio: float) -> pd.DataFrame:
     if dec == True:
-        fundamental_filter_df = rank_descending(df=df) <= n_top * ratio
+        rank_df = rank_descending(df=df)
     else:
-        fundamental_filter_df = rank_descending(df=-df) <= n_top * ratio
-    return fundamental_filter_df
+        rank_df = rank_descending(df=-(df))
+    picked_number = (rank_df <= n_top * ratio).sum(1)
+    picked_number[picked_number <= n_top] = n_top * ratio * 3
+    fundamental_filter_df = rank_df - picked_number.to_numpy().reshape((len(rank_df), 1))
+    return fundamental_filter_df <= 0
 
 
 def under_mkt_filter(mkt_df: pd.DataFrame, percent: float = 0.1):
@@ -30,7 +33,9 @@ def filtered_rank_dict(
         n_top: int) -> dict:
     """
     fundamental filter별로 계산을 따로함.
-    시가총액 하위 10% 종목들을 거름
+    시가총액 하위 10% 종목들을 거름.
+    filter 동일 랭크가 n_top을 넘어가서 아무것도 선택되지 않는 경우가 존재,
+    선택되는 종목이 n_top 이하일 경우 해당 시점은 n_top * ratio * 3 개를 선택
     """
     mkt_df = data['Market Capitalization - Current (U.S.$)']
     under_mkt_filter_df = under_mkt_filter(mkt_df)
@@ -39,6 +44,7 @@ def filtered_rank_dict(
                                        filter_info['decreasing'],
                                        filter_info['sub_top_N_ratio'],
                                        filter_info['number']):
+
         if flt == 'NO':
             fundamental_filter_df = under_mkt_filter_df
         else:
@@ -48,19 +54,6 @@ def filtered_rank_dict(
                 dec=dec,
                 n_top=n_top,
                 ratio=ratio)
-        """
-        if flt == 'NO':
-            fundamental_filter_df = pd.DataFrame(
-                index=data['RI'].index,
-                columns=data['RI'].columns)
-            fundamental_filter_df.iloc[:, :] = True
-        else:
-            if dec == True:
-                # fundemental _filter        
-                fundamental_filter_df = rank_descending(data[flt]) <= n_top * ratio
-            else:
-                fundamental_filter_df = rank_descending(-data[flt]) <= n_top * ratio
-        """
         rank_dict = rank_dict_add(
             data=data,
             factor_info=factor_info,
