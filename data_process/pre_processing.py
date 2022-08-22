@@ -6,13 +6,15 @@ from data_process import data_path
 from itertools import *
 import pandas as pd
 
+
 def strategy_space(numbers):
-    all_score_space = product([0, 0.2, 0.4, 0.6, 0.8, 1], repeat=numbers)
-    return [x for x in all_score_space if sum(x) == 1]
+    all_score_space = product([0, 0.25, 0.5, 0.75, 1], repeat=numbers)
+    return [x for x in all_score_space if (sum(x) == 1)]
+
 
 
 class PreProcessing:
-    def __init__(self, universe, n_top: int = 20):
+    def __init__(self, universe, n_top: int = 20, garbage=False):
         self.n_top = n_top
         self.factor_info = pd.read_csv(
             f'{data_path.FACTOR_CATEGORY_PATH}/'
@@ -31,8 +33,11 @@ class PreProcessing:
             self.universe_name = data_path.US_UNIVERSE
             self.path_dict = data_path.US_PATH_DICT
             self.name_dict = data_path.US_NAME_DICT
+        if garbage != False:
+            self.garbage_setting(garbage=garbage)
         data_read.make_path(path=self.path_dict['STRATEGY_WEIGHT_PATH'])
         data_read.make_path(path=self.path_dict['STRATEGY_STATS_PATH'])
+
         try:  # raw data
             self.dict_of_pandas = data_read.read_pickle(
                 path=self.path_dict['DATA_PATH'],
@@ -57,16 +62,7 @@ class PreProcessing:
             self.adj_ri = self.adj_ri.set_index('date_')
         except:
             self._ri_data_processing()
-        """
-        try:  # pct data
-            self.adj_pct = data_read.read_csv_(
-                path=self.path_dict['DATA_PATH'],
-                name=self.name_dict['PCT_NAME'])
-            print('already calculation adj pct')
-            self.adj_pct = self.adj_pct.set_index('date_')
-        except:
-            self._pct_data_processing()
-        """
+
         try:  # all space set
             self.all_space_set = data_read.read_pickle(
                 path=self.path_dict['DATA_PATH'],
@@ -82,6 +78,14 @@ class PreProcessing:
             print('already calculation z_score_factor')
         except:
             self._z_score_processing()
+
+    def garbage_setting(self, garbage):
+        self.factor_info = pd.read_csv(
+            f'{data_path.FACTOR_CATEGORY_PATH}/garbage_file/'
+            f'{data_path.FACTOR_CATEGORY_NAME.split(".csv")[0]}_garbage_{garbage}.csv')
+        self.path_dict['STRATEGY_WEIGHT_PATH'] = f'{self.path_dict["STRATEGY_WEIGHT_PATH"]}_garbage_{garbage}'
+        self.path_dict['STRATEGY_STATS_PATH'] = f'{self.path_dict["STRATEGY_STATS_PATH"]}_garbage_{garbage}'
+        self.name_dict['RANK_NAME'] = f'{self.name_dict["RANK_NAME"].split(".")[0]}_garbage_{garbage}.pickle'
 
     def _raw_data_processing(self):
         raw_data_df = data_read.read_raw_data_df(
@@ -102,7 +106,6 @@ class PreProcessing:
         print('calculation dict_of_pandas')
 
     def _rank_data_processing(self):
-
         dict_of_rank = calculation_rank.filtered_rank_dict(
             data=self.dict_of_pandas,
             factor_info=self.factor_info,
@@ -115,18 +118,6 @@ class PreProcessing:
         self.dict_of_rank = data_read.read_pickle(
             path=self.path_dict['DATA_PATH'],
             name=self.name_dict['RANK_NAME'])
-        """
-        dict_of_rank = calculation_rank.rank_dict_add(
-            data=self.dict_of_pandas,
-            factor_info=self.factor_info)
-        data_read.save_to_pickle(
-            any_=dict_of_rank,
-            path=self.path_dict['DATA_PATH'],
-            name=self.name_dict['RANK_NAME'])
-        self.dict_of_rank = data_read.read_pickle(
-            path=self.path_dict['DATA_PATH'],
-            name=self.name_dict['RANK_NAME'])
-        """
 
     def _ri_data_processing(self):
         adj_ri = calculation_pct.make_adj_ri_df(
@@ -179,7 +170,9 @@ class PreProcessing:
             name='z_scored_factor.pickle')
         print('calculation z_score_factor')
 
+
 if __name__ == "__main__":
-    pre_process = PreProcessing(universe='korea')
+    garbage = 0
+    pre_process = PreProcessing(universe='korea', garbage=garbage)
 
     pre_process.dict_of_rank[1]['Earning Momentum'].sum(1)

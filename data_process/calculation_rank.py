@@ -82,6 +82,7 @@ def rank_dict_add(
     for direction, factor, category in zip(factor_info['direction'],
                                            factor_info['factor'],
                                            factor_info['category']):
+
         direction_factor_df = direction_control(
             _any=(data[factor].copy()).astype(float),
             direction=direction)

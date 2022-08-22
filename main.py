@@ -7,6 +7,8 @@ from backtest_process import calculate_series
 from backtest_process import make_bm
 import time
 
+start = time.time()
+
 if __name__ == "__main__":
     rebal = 'q'  # or 'm'
     cost = 0.003
@@ -14,29 +16,23 @@ if __name__ == "__main__":
     universe = 'korea'
     pre_process = pre_processing.PreProcessing(universe=universe, n_top=20)
 
-    pre_process.dict_of_pandas.keys()
 
     # 계산 완료되면 돌릴 필요 없어요 filter마다 stock_picking
-    start = time.time()
     for filter_number in list(pre_process.filter_info['number'])[:1]:
         stock_picking.StockPick(
             pre_process=pre_process,
             filter_number=filter_number,
             asyncio_=True)
-    print("time :", time.time() - start)
 
     # picking_data_load
     picking_dict = stock_picking.get_stock_picking_dict(pre_process=pre_process)
 
-    start = time.time()
     # 계산 완료되면 돌릴 필요 없어요 (exposure)
     calculate_exposure.calculate_series_exposure(
         pre_process=pre_process,
         picking_dict=picking_dict,
         asyncio_=True)
-    print("time :", time.time() - start)
 
-    start = time.time()
     # 계산 완료되면 돌릴 필요 없어요 (back_test)
     calculate_series.calculate_series_backtest(
         pre_process=pre_process,
@@ -44,7 +40,6 @@ if __name__ == "__main__":
         cost=cost,
         rebal=rebal,
         asyncio_=True)
-    print("time :", time.time() - start)
 
     bulk_backtest_df = data_read.bulk_backtest_df(
         strategy_name_list=list(picking_dict.keys()),
@@ -61,7 +56,7 @@ if __name__ == "__main__":
     stats.set_optional(
         rebal=rebal,
         in_sample_year=10,
-        out_sample_year=0,
+        out_sample_year=3,
         path=pre_process.path_dict['STRATEGY_STATS_PATH'])
     stats.loop_make_stats_df()
     print("time :", time.time() - start)
@@ -69,6 +64,7 @@ if __name__ == "__main__":
 
     """
     이하는 sample
+    """
     """
     ## 전략의 exposure
     import pandas as pd
@@ -90,5 +86,6 @@ if __name__ == "__main__":
     weight_df = pd.DataFrame(weight,
                              columns=pre_process.adj_ri.columns,
                              index=pre_process.adj_ri.index)
+    """
 
 
