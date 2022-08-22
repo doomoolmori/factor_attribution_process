@@ -1,0 +1,11 @@
+factor,direction,category,z_score_weight
+Return On Equity - Per Share,TRUE,Garbage1,1
+Combined Ratio,TRUE,Garbage2,1
+Total Asset Turnover,TRUE,Garbage3,1
+accumulated return over stdev of difference between trend and price,TRUE,Garbage4,1
+365 Days Coefficient of Variation of Volume to Price,FALSE,Garbage5,1
+Foreign Assets % Total Assets,TRUE,Garbage6,1
+Number of Analyst who cover the company Yoy Growth,FALSE,Garbage7,1
+Operating Income/Total Capital,FALSE,Garbage8,1
+Capital Expenditure % Total Assets,TRUE,Garbage9,1
+Dividend Yield - High,FALSE,Garbage10,1

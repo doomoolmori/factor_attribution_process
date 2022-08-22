@@ -1,0 +1,11 @@
+factor,direction,category,z_score_weight
+Operating Cash/Fixed Charges,TRUE,Garbage1,1
+Long Term Debt % Common Equity (GAAP),TRUE,Garbage2,1
+Current Ratio,TRUE,Garbage3,1
+Foreign Sales % Total Sales,TRUE,Garbage4,1
+ValueGrowth,FALSE,Garbage5,1
+Long term relative strength index,TRUE,Garbage6,1
+Foreign Income Margin,FALSE,Garbage7,1
+Employees - 5 Yr Annual Growth,FALSE,Garbage8,1
+ValueMomentum,TRUE,Garbage9,1
+Non-Interest Income % Total Revenues,FALSE,Garbage10,1

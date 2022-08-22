@@ -1,0 +1,11 @@
+factor,direction,category,z_score_weight
+Loans - 1 Yr Growth Rate,TRUE,Garbage1,1
+Earnings Per Share - Fiscal - 1 Yr Annual Growth,TRUE,Garbage2,1
+Net Income - 3 Yr Annual Growth,TRUE,Garbage3,1
+Employees - 5 Yr Annual Growth,TRUE,Garbage4,1
+Net Sales / Revenues - 3 Yr Annual Growth,FALSE,Garbage5,1
+Pretax Margin,TRUE,Garbage6,1
+Total Assets - 1 Yr Annual Growth,FALSE,Garbage7,1
+GrowthMomentum,FALSE,Garbage8,1
+Quick Ratio,TRUE,Garbage9,1
+Market Capitalization - Current (U.S.$),FALSE,Garbage10,1

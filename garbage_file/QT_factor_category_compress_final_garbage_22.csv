@@ -1,0 +1,11 @@
+factor,direction,category,z_score_weight
+Tax Rate,TRUE,Garbage1,1
+LTGrowth,TRUE,Garbage2,1
+Long term relative strength index,TRUE,Garbage3,1
+Employees - 5 Yr Annual Growth,TRUE,Garbage4,1
+Excess_RSI,FALSE,Garbage5,1
+The 4 week change in the Consensus Estimate divided by Price,TRUE,Garbage6,1
+Upside Potential,FALSE,Garbage7,1
+Cash Dividend Coverage Ratio,FALSE,Garbage8,1
+Return On Equity - Total (%),TRUE,Garbage9,1
+Earning Assets % Total Available Funds,FALSE,Garbage10,1

@@ -1,0 +1,11 @@
+factor,direction,category,z_score_weight
+Equity - 1 Yr Annual Growth,TRUE,Garbage1,1
+Preferred Stock % Total Capital,TRUE,Garbage2,1
+Turnaround,TRUE,Garbage3,1
+Foreign Assets % Total Assets,TRUE,Garbage4,1
+Inventories - Days Held,FALSE,Garbage5,1
+Reinvestment Rate Per Share (Fiscal),TRUE,Garbage6,1
+Price/Earnings Ratio - Avg High-Low,FALSE,Garbage7,1
+Non-Performing Loans % Reserve For Loan Losses,FALSE,Garbage8,1
+Non-Interest Income % Total Revenues,TRUE,Garbage9,1
+Net Income - 3 Yr Annual Growth,FALSE,Garbage10,1

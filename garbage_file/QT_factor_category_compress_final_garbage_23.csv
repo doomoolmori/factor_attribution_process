@@ -1,0 +1,11 @@
+factor,direction,category,z_score_weight
+recency adjustment prev 90 days,TRUE,Garbage1,1
+Quick Ratio,TRUE,Garbage2,1
+The 4 week change in the Consensus Estimate divided by Price,TRUE,Garbage3,1
+Invested Assets & Loans % Total Deposits,TRUE,Garbage4,1
+exchintcode,FALSE,Garbage5,1
+Alpha,TRUE,Garbage6,1
+EPS12MGrowth,FALSE,Garbage7,1
+Employees - 5 Yr Annual Growth,FALSE,Garbage8,1
+"Selling, General & Administrative Expenses/Sales",TRUE,Garbage9,1
+Net Income - 1 Yr Annual Growth,FALSE,Garbage10,1

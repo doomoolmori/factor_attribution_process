@@ -1,0 +1,11 @@
+factor,direction,category,z_score_weight
+Loans - 5 Yr Growth Rate,TRUE,Garbage1,1
+Non-Performing Loans % Total Loans,TRUE,Garbage2,1
+Operating Income - 5 Yr Annual Growth,TRUE,Garbage3,1
+Yield On Investment,TRUE,Garbage4,1
+Return On Equity - GAAP - Total Dollar,FALSE,Garbage5,1
+Reserve For Loan Losses % Total Capital,TRUE,Garbage6,1
+accumulated return over stdev of difference between trend and price,FALSE,Garbage7,1
+Market Capitalization - Current (U.S.$),FALSE,Garbage8,1
+Insurance Reserves - 1 Yr Annual Growth,TRUE,Garbage9,1
+Inventories % Total Current Assets,FALSE,Garbage10,1

@@ -1,0 +1,11 @@
+factor,direction,category,z_score_weight
+Foreign Return On Assets,TRUE,Garbage1,1
+Actual Loan Losses % Reserves For Loan Losses,TRUE,Garbage2,1
+Non-Performing Loans % Total Loans,TRUE,Garbage3,1
+Inventories % Total Current Assets,TRUE,Garbage4,1
+Dividend Payout (% Earnings) - Total Dollar,FALSE,Garbage5,1
+MScore5,TRUE,Garbage6,1
+Retained Earnings % Equity,FALSE,Garbage7,1
+Price/Cash Flow - Current,FALSE,Garbage8,1
+Foreign Income % Total Income,TRUE,Garbage9,1
+Earning Assets % Total Available Funds,FALSE,Garbage10,1

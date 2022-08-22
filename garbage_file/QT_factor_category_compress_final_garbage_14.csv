@@ -1,0 +1,11 @@
+factor,direction,category,z_score_weight
+Earnings Per Share Growth - Period,TRUE,Garbage1,1
+Loss Ratio,TRUE,Garbage2,1
+Working Capital % Total Capital,TRUE,Garbage3,1
+Ebit/Interest Expense,TRUE,Garbage4,1
+Price/Sales,FALSE,Garbage5,1
+Accounts Payable/Sales,TRUE,Garbage6,1
+Yield On Investment,FALSE,Garbage7,1
+Total Assets/Common Equity,FALSE,Garbage8,1
+Cash & Securities % Total Deposits,TRUE,Garbage9,1
+Total Debt % Total Capital & Short Term Debt,FALSE,Garbage10,1

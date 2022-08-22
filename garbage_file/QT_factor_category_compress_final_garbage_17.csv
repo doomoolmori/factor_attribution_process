@@ -1,0 +1,11 @@
+factor,direction,category,z_score_weight
+Net Loan Losses % Total Loans,TRUE,Garbage1,1
+Non-Interest Income % Total Revenues,TRUE,Garbage2,1
+Non-Performing Loans % Total Loans,TRUE,Garbage3,1
+Loans - 1 Yr Growth Rate,TRUE,Garbage4,1
+Insurance Reserves - 1 Yr Annual Growth,FALSE,Garbage5,1
+Price/Earnings Ratio - Current,TRUE,Garbage6,1
+Price Trend - Previous Quarter,FALSE,Garbage7,1
+Non-Performing Loans % Equity,FALSE,Garbage8,1
+Equity % Total Capital,TRUE,Garbage9,1
+EfficiencyValue,FALSE,Garbage10,1

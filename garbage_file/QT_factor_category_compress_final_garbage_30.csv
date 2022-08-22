@@ -1,0 +1,11 @@
+factor,direction,category,z_score_weight
+Inventory Turnover,TRUE,Garbage1,1
+Tax Rate,TRUE,Garbage2,1
+Employees - 5 Yr Annual Growth,TRUE,Garbage3,1
+Insurance Reserves - 1 Yr Annual Growth,TRUE,Garbage4,1
+Number of Analyst who cover the company Yoy Growth,FALSE,Garbage5,1
+Total Capital % Total Assets,TRUE,Garbage6,1
+Trend Line of CPS,FALSE,Garbage7,1
+Gross Profit Margin,FALSE,Garbage8,1
+Upside Potential,TRUE,Garbage9,1
+Capital Expediture % Gross Fixed Assets,FALSE,Garbage10,1

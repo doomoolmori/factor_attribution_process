@@ -27,12 +27,12 @@ class PreProcessing:
         self.raw_data_name = data_path.RAW_DATA_NAME
         if universe == 'korea':
             self.universe_name = data_path.KOREA_UNIVERSE
-            self.path_dict = data_path.KOREA_PATH_DICT
-            self.name_dict = data_path.KOREA_NAME_DICT
+            self.path_dict = data_path.KOREA_PATH_DICT.copy()
+            self.name_dict = data_path.KOREA_NAME_DICT.copy()
         elif universe == 'us':
             self.universe_name = data_path.US_UNIVERSE
-            self.path_dict = data_path.US_PATH_DICT
-            self.name_dict = data_path.US_NAME_DICT
+            self.path_dict = data_path.US_PATH_DICT.copy()
+            self.name_dict = data_path.US_NAME_DICT.copy()
         if garbage != False:
             self.garbage_setting(garbage=garbage)
         data_read.make_path(path=self.path_dict['STRATEGY_WEIGHT_PATH'])

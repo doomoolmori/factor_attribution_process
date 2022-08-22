@@ -1,25 +1,11 @@
-﻿factor,direction,category,z_score_weight
-DeepValue,TRUE,Value,0.333333333
-Price/Sales,FALSE,Value,0.333333333
-Upside Potential,TRUE,Value,0.333333333
-DIVIDEND YIELD - CLOSE,TRUE,Dividend,1
-Price Trend - 26 Week,TRUE,Momentum,0.333333333
-Price Trend - 52 Weeks,TRUE,Momentum,0.333333333
-PriceMomentum,TRUE,Momentum,0.333333333
-Research & Development / Total Assets,TRUE,Investment,0.5
-RPR,TRUE,Investment,0.5
-Dispersion in Analyst Forecasts stdev/mean,TRUE,Information Uncertainty,0.5
-Number of Analyst who cover the company Yoy Growth,FALSE,Information Uncertainty,0.5
-Trend Line of CPS,TRUE,Growth,1
-Fixed Assets % Common Equity,FALSE,Financial Quality,0.2
-Fixed Charge Coverage Ratio,TRUE,Financial Quality,0.2
-Long Term Debt % Common Equity,FALSE,Financial Quality,0.2
-Total Assets/Common Equity,FALSE,Financial Quality,0.2
-Total Debt % Common Equity,FALSE,Financial Quality,0.333333333
-Cash Earnings Return On Equity,TRUE,Earnings Quality,0.333333333
-Total Asset Turnover,TRUE,Earnings Quality,0.333333333
-EarningMomentum,TRUE,Earning Momentum,0.333333333
-Up Down to consensus EPS,TRUE,Earning Momentum,0.333333333
-Up Down to consensus SALES,TRUE,Earning Momentum,0.333333333
-Excess_RSI,FALSE,Contrarian,0.5
-Long term relative strength index,FALSE,Contrarian,0.5
+factor,direction,category,z_score_weight
+Interest Rate - Estimated Average,TRUE,Garbage1,1
+Total Assets - 1 Yr Annual Growth,TRUE,Garbage2,1
+Cash Dividends/Cash Flow,TRUE,Garbage3,1
+LTGrowth,TRUE,Garbage4,1
+Demand Deposits % Total Deposits,FALSE,Garbage5,1
+Net Interest Income % Average Deposits,TRUE,Garbage6,1
+Foreign Assets % Total Assets,FALSE,Garbage7,1
+Inventories % Total Current Assets,FALSE,Garbage8,1
+Total Assets - 5 Yr Annual Growth,TRUE,Garbage9,1
+Return On Equity - Per Share,FALSE,Garbage10,1

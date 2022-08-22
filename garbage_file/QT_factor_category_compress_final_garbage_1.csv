@@ -1,25 +1,11 @@
-﻿factor,direction,category,z_score_weight
-DeepValue,TRUE,Value,0.333333333
-Price/Sales,FALSE,Value,0.333333333
-Upside Potential,TRUE,Value,0.333333333
-DIVIDEND YIELD - CLOSE,TRUE,Dividend,1
-Price Trend - 26 Week,TRUE,Momentum,0.333333333
-Price Trend - 52 Weeks,TRUE,Momentum,0.333333333
-PriceMomentum,TRUE,Momentum,0.333333333
-Research & Development / Total Assets,TRUE,Investment,0.5
-RPR,TRUE,Investment,0.5
-Dispersion in Analyst Forecasts stdev/mean,TRUE,Information Uncertainty,0.5
-Number of Analyst who cover the company Yoy Growth,FALSE,Information Uncertainty,0.5
-Trend Line of CPS,TRUE,Growth,1
-Fixed Assets % Common Equity,FALSE,Financial Quality,0.2
-Fixed Charge Coverage Ratio,TRUE,Financial Quality,0.2
-Long Term Debt % Common Equity,FALSE,Financial Quality,0.2
-Total Assets/Common Equity,FALSE,Financial Quality,0.2
-Total Debt % Common Equity,FALSE,Financial Quality,0.333333333
-Cash Earnings Return On Equity,TRUE,Earnings Quality,0.333333333
-Total Asset Turnover,TRUE,Earnings Quality,0.333333333
-EarningMomentum,TRUE,Earning Momentum,0.333333333
-Up Down to consensus EPS,TRUE,Earning Momentum,0.333333333
-Up Down to consensus SALES,TRUE,Earning Momentum,0.333333333
-Excess_RSI,FALSE,Contrarian,0.5
-Long term relative strength index,FALSE,Contrarian,0.5
+factor,direction,category,z_score_weight
+Excess_RSI,TRUE,Garbage1,1
+Price Trend - Year-To-Date,TRUE,Garbage2,1
+Earning Assets % Total Available Funds,TRUE,Garbage3,1
+Turnover Rate,TRUE,Garbage4,1
+Upside Potential,FALSE,Garbage5,1
+Net Interest Income % Average Deposits,TRUE,Garbage6,1
+Net Sales To Gross Fixed Assets,FALSE,Garbage7,1
+Claims & Claim Expense % Net Premiums Written,FALSE,Garbage8,1
+Total Loans % Total Assets,TRUE,Garbage9,1
+Total Debt % Total Capital & Short Term Debt,FALSE,Garbage10,1

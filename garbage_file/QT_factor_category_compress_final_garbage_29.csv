@@ -1,0 +1,11 @@
+factor,direction,category,z_score_weight
+Loans - 1 Yr Growth Rate,TRUE,Garbage1,1
+The 4 week change in the Consensus Estimate divided by Price,TRUE,Garbage2,1
+Total Interest Income % Earning Assets,TRUE,Garbage3,1
+Net Sales / Revenues - 1 Yr Annual Growth,TRUE,Garbage4,1
+Net Premium Written % Equity,FALSE,Garbage5,1
+ValueMomentum,TRUE,Garbage6,1
+Yield On Investment,FALSE,Garbage7,1
+exchintcode,FALSE,Garbage8,1
+Price/Sales,TRUE,Garbage9,1
+Long Term Debt % Total Capital,FALSE,Garbage10,1

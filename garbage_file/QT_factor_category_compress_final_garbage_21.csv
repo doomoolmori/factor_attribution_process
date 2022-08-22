@@ -1,0 +1,11 @@
+factor,direction,category,z_score_weight
+365 Days Coefficient of Variation of Volume to Price,TRUE,Garbage1,1
+Net Margin - 5 Yr Growth Rate,TRUE,Garbage2,1
+GrowthMomentum,TRUE,Garbage3,1
+EPS12MGrowth,TRUE,Garbage4,1
+Price/Earnings Ratio - Current,FALSE,Garbage5,1
+Net Income - 1 Yr Annual Growth,TRUE,Garbage6,1
+Assets Per Employee,FALSE,Garbage7,1
+Cash Dividend Coverage Ratio,FALSE,Garbage8,1
+Foreign Income Growth,TRUE,Garbage9,1
+Sales Per Employee,FALSE,Garbage10,1

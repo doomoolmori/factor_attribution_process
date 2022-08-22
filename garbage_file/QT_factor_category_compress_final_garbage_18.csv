@@ -1,0 +1,11 @@
+factor,direction,category,z_score_weight
+Equity Securities & Real Estate % Capital,TRUE,Garbage1,1
+Loans - 1 Yr Growth Rate,TRUE,Garbage2,1
+Earning Assets % Total Available Funds,TRUE,Garbage3,1
+Inverse PEG ( PEG =PER / 12 month forward eps growth),TRUE,Garbage4,1
+Return On Equity - Total (%),FALSE,Garbage5,1
+Return On Equity Per Share (Fiscal),TRUE,Garbage6,1
+Return On Invested Capital,FALSE,Garbage7,1
+Total Interest Income % Earning Assets,FALSE,Garbage8,1
+"Selling, General & Administrative Expenses/Sales",TRUE,Garbage9,1
+Total Assets - 1 Yr Annual Growth,FALSE,Garbage10,1

@@ -1,0 +1,11 @@
+factor,direction,category,z_score_weight
+RPR,TRUE,Garbage1,1
+exchintcode,TRUE,Garbage2,1
+Loan Loss Coverage Ratio,TRUE,Garbage3,1
+GrowthMomentum,TRUE,Garbage4,1
+Equity - 1 Yr Annual Growth,FALSE,Garbage5,1
+Efficiency Of Earning Assets,TRUE,Garbage6,1
+PEGrowth,FALSE,Garbage7,1
+Foreign Return On Assets,FALSE,Garbage8,1
+Cash & Securities % Total Deposits,TRUE,Garbage9,1
+Operating Income - 5 Yr Annual Growth,FALSE,Garbage10,1

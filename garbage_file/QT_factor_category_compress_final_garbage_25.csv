@@ -1,0 +1,11 @@
+factor,direction,category,z_score_weight
+Dispersion in Analyst Forecasts stdev/mean,TRUE,Garbage1,1
+Net Sales%Working Capital,TRUE,Garbage2,1
+Invested Assets % Liabilities,TRUE,Garbage3,1
+Price/Cash Flow - Current,TRUE,Garbage4,1
+Price Trend - 52 Weeks,FALSE,Garbage5,1
+Total Investments % Total Capital,TRUE,Garbage6,1
+Accounts Payable/Sales,FALSE,Garbage7,1
+Excess_RSI,FALSE,Garbage8,1
+Return On Equity Per Share (Fiscal),TRUE,Garbage9,1
+accumulated return over stdev of difference between trend and price,FALSE,Garbage10,1

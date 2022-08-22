@@ -1,0 +1,11 @@
+factor,direction,category,z_score_weight
+Total Interest Expense % Interest Bearing Liabilities,TRUE,Garbage1,1
+ValueGrowth,TRUE,Garbage2,1
+Operating Income - 1 Yr Annual Growth,TRUE,Garbage3,1
+Total Investment Return,TRUE,Garbage4,1
+Price/Earnings Ratio - Current,FALSE,Garbage5,1
+Market Capitalization/Trailing 12 Months Revenue,TRUE,Garbage6,1
+Net Income - 5 Yr Annual Growth,FALSE,Garbage7,1
+unadjprc,FALSE,Garbage8,1
+Total Debt % Total Assets,TRUE,Garbage9,1
+Net Interest Income % Average Deposits,FALSE,Garbage10,1

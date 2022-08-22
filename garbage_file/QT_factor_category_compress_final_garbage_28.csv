@@ -1,0 +1,11 @@
+factor,direction,category,z_score_weight
+Net Income - 3 Yr Annual Growth,TRUE,Garbage1,1
+Yield On Investment,TRUE,Garbage2,1
+Total Assets/Common Equity,TRUE,Garbage3,1
+Upside Potential,TRUE,Garbage4,1
+Return On Invested Capital,FALSE,Garbage5,1
+Price Trend - Year-To-Date,TRUE,Garbage6,1
+Net Sales / Revenues - 3 Yr Annual Growth,FALSE,Garbage7,1
+Expense Ratio,FALSE,Garbage8,1
+Loan Loss Coverage Ratio,TRUE,Garbage9,1
+Invested Assets % Total Deposits,FALSE,Garbage10,1

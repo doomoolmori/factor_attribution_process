@@ -1,0 +1,11 @@
+factor,direction,category,z_score_weight
+Market Capitalization/Common Equity,TRUE,Garbage1,1
+EPS12MGrowth,TRUE,Garbage2,1
+Minority Interest % Total Capital,TRUE,Garbage3,1
+Total Assets - 5 Yr Annual Growth,TRUE,Garbage4,1
+Closely Held Shares - Current,FALSE,Garbage5,1
+Total Capital % Total Assets,TRUE,Garbage6,1
+Earnings Per Share - Fiscal - 1 Yr Annual Growth,FALSE,Garbage7,1
+Beta,FALSE,Garbage8,1
+Number of Analyst who cover the company Yoy Growth,TRUE,Garbage9,1
+Total Interest Expense % Interest Bearing Liabilities,FALSE,Garbage10,1
