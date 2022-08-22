@@ -12,9 +12,10 @@ def strategy_space(numbers):
     return [x for x in all_score_space if (sum(x) == 1)]
 
 
-
 class PreProcessing:
     def __init__(self, universe, n_top: int = 20, garbage=False):
+        self.universe = universe
+        self.garbage = garbage
         self.n_top = n_top
         self.factor_info = pd.read_csv(
             f'{data_path.FACTOR_CATEGORY_PATH}/'
@@ -25,16 +26,16 @@ class PreProcessing:
 
         self.raw_data_path = data_path.RAW_DATA_PATH
         self.raw_data_name = data_path.RAW_DATA_NAME
-        if universe == 'korea':
+        if self.universe == 'korea':
             self.universe_name = data_path.KOREA_UNIVERSE
             self.path_dict = data_path.KOREA_PATH_DICT.copy()
             self.name_dict = data_path.KOREA_NAME_DICT.copy()
-        elif universe == 'us':
+        elif self.universe == 'us':
             self.universe_name = data_path.US_UNIVERSE
             self.path_dict = data_path.US_PATH_DICT.copy()
             self.name_dict = data_path.US_NAME_DICT.copy()
         if garbage != False:
-            self.garbage_setting(garbage=garbage)
+            self.garbage_setting(garbage=self.garbage)
         data_read.make_path(path=self.path_dict['STRATEGY_WEIGHT_PATH'])
         data_read.make_path(path=self.path_dict['STRATEGY_STATS_PATH'])
 
@@ -78,14 +79,6 @@ class PreProcessing:
             print('already calculation z_score_factor')
         except:
             self._z_score_processing()
-
-    def garbage_setting(self, garbage):
-        self.factor_info = pd.read_csv(
-            f'{data_path.FACTOR_CATEGORY_PATH}/garbage_file/'
-            f'{data_path.FACTOR_CATEGORY_NAME.split(".csv")[0]}_garbage_{garbage}.csv')
-        self.path_dict['STRATEGY_WEIGHT_PATH'] = f'{self.path_dict["STRATEGY_WEIGHT_PATH"]}_garbage_{garbage}'
-        self.path_dict['STRATEGY_STATS_PATH'] = f'{self.path_dict["STRATEGY_STATS_PATH"]}_garbage_{garbage}'
-        self.name_dict['RANK_NAME'] = f'{self.name_dict["RANK_NAME"].split(".")[0]}_garbage_{garbage}.pickle'
 
     def _raw_data_processing(self):
         raw_data_df = data_read.read_raw_data_df(
@@ -169,6 +162,25 @@ class PreProcessing:
             path=self.path_dict['DATA_PATH'],
             name='z_scored_factor.pickle')
         print('calculation z_score_factor')
+
+    def garbage_setting(self, garbage):
+        self.factor_info = pd.read_csv(
+            f'{data_path.FACTOR_CATEGORY_PATH}/garbage_file/'
+            f'{data_path.FACTOR_CATEGORY_NAME.split(".csv")[0]}_garbage_{garbage}.csv')
+        if self.universe == 'korea':
+            self.path_dict['STRATEGY_WEIGHT_PATH'] = \
+                f'{data_path.KOREA_PATH_DICT["STRATEGY_WEIGHT_PATH"]}_garbage_{garbage}'
+            self.path_dict['STRATEGY_STATS_PATH'] = \
+                f'{data_path.KOREA_PATH_DICT["STRATEGY_STATS_PATH"]}_garbage_{garbage}'
+            self.name_dict['RANK_NAME'] = \
+                f'{data_path.KOREA_NAME_DICT["RANK_NAME"].split(".")[0]}_garbage_{garbage}.pickle'
+        elif self.universe == 'us':
+            self.path_dict['STRATEGY_WEIGHT_PATH'] = \
+                f'{data_path.US_PATH_DICT["STRATEGY_WEIGHT_PATH"]}_garbage_{garbage}'
+            self.path_dict['STRATEGY_STATS_PATH'] = \
+                f'{data_path.US_PATH_DICT["STRATEGY_STATS_PATH"]}_garbage_{garbage}'
+            self.name_dict['RANK_NAME'] = \
+                f'{data_path.US_NAME_DICT["RANK_NAME"].split(".")[0]}_garbage_{garbage}.pickle'
 
 
 if __name__ == "__main__":
