@@ -226,6 +226,12 @@ def beta_bear(
     return cov[0, 1] / cov[1, 1]
 
 
+# Payoff
+def pay_off(ret_arr: np.array,
+            up_boolean: np.array,
+            down_boolean: np.array):
+    return np.abs(ret_arr[up_boolean].mean()/ret_arr[down_boolean].mean())
+
 # AverageRecovery 없어도 될듯
 # TODO turnover
 
@@ -294,6 +300,11 @@ def bulk_stats_dict(stats) -> dict:
         ret_arr=stats.ret_arr,
         bm_ret_arr=stats.bm_ret_arr,
         bm_down_boolean=stats.bm_down_boolean)
+    stats_dict['Payoff'] = pay_off(
+        ret_arr=stats.ret_arr,
+        up_boolean=stats.up_boolean,
+        down_boolean=stats.down_boolean)
+    stats_dict['Payoff_to_hitrate'] = stats_dict['Payoff'] * stats_dict['UpsideFrequency']
     stats_dict['OutReturn'] = ret(
         ret_arr=stats.out_ret_arr,
         freq=stats.freq)

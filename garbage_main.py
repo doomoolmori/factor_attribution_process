@@ -17,8 +17,8 @@ if __name__ == "__main__":
     garbage_list = [False, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
                     11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
                     21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+    """
     pre_process = pre_processing.PreProcessing(universe=universe, n_top=20, garbage=False)
-
     # 전처리 (dict_of_rank.pickle 완료시 돌릴필요없어요)
     for garbage in garbage_list:
         if garbage != False:
@@ -27,7 +27,7 @@ if __name__ == "__main__":
             data_read.make_path(path=pre_process.path_dict['STRATEGY_WEIGHT_PATH'])
             data_read.make_path(path=pre_process.path_dict['STRATEGY_STATS_PATH'])
             pre_process._rank_data_processing()
-
+    """
     # 백테스팅
     for garbage in garbage_list:
         pre_process = pre_processing.PreProcessing(universe=universe, n_top=20, garbage=garbage)
