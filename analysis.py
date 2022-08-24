@@ -3,9 +3,19 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
+path = f'data/us/strategy_stats'
+raw_df = pd.read_csv(f'{path}/2003-01-31_q.csv', index_col=0)
 
+total_q = 5
+for sg in raw_df['strategy']:
+    for i in range(1, total_q + 1):
+        print(i)
+
+raw_df['strategy']
+
+
+"""
 # garbage 10, 12, 19, 24 제거
-
 char_list = ['Return', 'SD', 'Sharpe', 'MinReturn', 'MaxReturn', 'UpsideFrequency',
              'UpCapture', 'DownCapture', 'UpNumber', 'DownNumber', 'UpPercent',
              'DownPercent', 'AverageDrawdown', 'MaxDrawdown', 'TrackingError',
@@ -90,4 +100,4 @@ ax.set_zlabel('3yOutR')
 plt.show()
 
 dated_5y['Outsharp'].corr(dated_10y['sharp'])
-
+"""
