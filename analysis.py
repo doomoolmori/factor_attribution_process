@@ -3,16 +3,37 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
+def make_q_stat_dict(df:pd.DataFrame, total_q:int):
+    stats_dict = {}
+    count_q = 0
+    count_nor = 0
+    for strategy in df['strategy']:
+        if 'q' in strategy:
+            count_q += 1
+        else:
+            count_nor += 1
+    numbers = (count_q)/total_q
+    assert int(numbers) == numbers, "전략수 애러"
+    numbers = int(numbers)
+    stats_dict['normal'] = df.iloc[:count_nor, :].copy()
+    for q in range(1, total_q + 1):
+        start = count_nor + numbers * (q - 1)
+        end = count_nor + numbers * q
+        stats_dict[f'{q}q'] = df.iloc[start:end, :].copy()
+    return stats_dict
+
+
 path = f'data/us/strategy_stats'
 raw_df = pd.read_csv(f'{path}/2003-01-31_q.csv', index_col=0)
+q_stats_dict = make_q_stat_dict(df=raw_df, total_q=5)
 
-total_q = 5
-for sg in raw_df['strategy']:
-    for i in range(1, total_q + 1):
-        print(i)
+q_stats_dict['normal']
 
-raw_df['strategy']
-
+q_stats_dict['1q']
+q_stats_dict['2q']
+q_stats_dict['3q']
+q_stats_dict['4q']
+q_stats_dict['5q']
 
 """
 # garbage 10, 12, 19, 24 제거
