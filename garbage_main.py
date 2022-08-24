@@ -29,15 +29,17 @@ if __name__ == "__main__":
             pre_process._rank_data_processing()
     """
     # 백테스팅
-    for garbage in garbage_list:
+    for garbage in garbage_list[:1]:
         pre_process = pre_processing.PreProcessing(universe=universe, n_top=20, garbage=garbage)
 
         # 계산 완료되면 돌릴 필요 없어요 filter마다 stock_picking
         for filter_number in list(pre_process.filter_info['number'])[:1]:
-            stock_picking.StockPick(
+            picking = stock_picking.StockPick(
                 pre_process=pre_process,
                 filter_number=filter_number,
                 asyncio_=True)
+            picking.do_stock_pick()
+            picking.do_stock_pick_quantile(quantile=5)
 
         # picking_data_load
         picking_dict = stock_picking.get_stock_picking_dict(pre_process=pre_process)

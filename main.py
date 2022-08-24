@@ -19,10 +19,11 @@ if __name__ == "__main__":
 
     # 계산 완료되면 돌릴 필요 없어요 filter마다 stock_picking
     for filter_number in list(pre_process.filter_info['number'])[:1]:
-        stock_picking.StockPick(
+        picking = stock_picking.StockPick(
             pre_process=pre_process,
             filter_number=filter_number,
             asyncio_=True)
+        picking.do_stock_pick()
 
     # picking_data_load
     picking_dict = stock_picking.get_stock_picking_dict(pre_process=pre_process)
