@@ -6,19 +6,6 @@ Created on Wed Aug  3 16:51:33 2022
 import numpy as np
 import pandas as pd
 
-"""
-import pandas as pd
-from dataturbo import DataTurbo
-import numpy as np
-from scipy import stats
-api = DataTurbo()
-price_df = api.get_adj_price(["005930 KS Equity"], '1990-01-01', '2022-03-31')
-price_df = price_df.resample('Q').last()
-ret_df = price_df.pct_change().dropna()
-bm_df = api.get_adj_price(["KOSPI Index"], '1990-01-01', '2022-03-31')
-bm_price_df = bm_df.resample('Q').last()
-bm_ret_df = bm_price_df.pct_change().dropna()
-"""
 
 
 class Stats:
@@ -39,13 +26,6 @@ class Stats:
         self.down_boolean = self.ret_arr < 0
         self.backtest_drawdown = series_drawdown(price_df=self.backtest_arr)
 
-    def set_bm_arr(self, bm_arr: np.array):
-        self.bm_arr = bm_arr
-        self.bm_ret_arr = get_ret_arr(arr=self.bm_arr)
-        self.bm_up_boolean = self.bm_ret_arr > 0
-        self.bm_down_boolean = self.bm_ret_arr < 0
-        self.bm_drawdown = series_drawdown(price_df=self.bm_arr)
-
     def set_out_backtest_arr(self, out_backtest_arr: np.array):
         self.out_backtest_arr = out_backtest_arr
         self.out_ret_arr = get_ret_arr(arr=self.out_backtest_arr)
@@ -53,12 +33,25 @@ class Stats:
         self.out_down_boolean = self.out_ret_arr < 0
         self.out_backtest_drawdown = series_drawdown(price_df=self.out_backtest_arr)
 
+    def set_bm_arr(self, bm_arr: np.array):
+        self.bm_arr = bm_arr
+        self.bm_ret_arr = get_ret_arr(arr=self.bm_arr)
+        self.bm_up_boolean = self.bm_ret_arr > 0
+        self.bm_down_boolean = self.bm_ret_arr < 0
+        self.bm_drawdown = series_drawdown(price_df=self.bm_arr)
+
     def set_out_bm_arr(self, out_bm_arr: np.array):
         self.out_bm_arr = out_bm_arr
         self.out_bm_ret_arr = get_ret_arr(arr=self.out_bm_arr)
         self.out_bm_up_boolean = self.out_bm_ret_arr > 0
         self.out_bm_down_boolean = self.out_bm_ret_arr < 0
         self.out_bm_drawdown = series_drawdown(price_df=self.out_bm_arr)
+
+    def set_rf_arr(self, rf_arr: np.array):
+        self.rf_arr = rf_arr[1:]
+
+    def set_out_rf_arr(self, out_rf_arr: np.array):
+        self.out_rf_arr = out_rf_arr[1:]
 
     def check(self):
         assert len(self.ret_arr) == len(self.bm_ret_arr), \
@@ -172,8 +165,9 @@ def max_drawdown(drawdown: np.array) -> float:
 def alpha(
         ret_arr: np.array,
         bm_ret_arr: np.array,
+        rf_arr: np.array,
         freq: int) -> float:
-    ret_diff = ret_arr - bm_ret_arr
+    ret_diff = ret_arr - bm_ret_arr - rf_arr
     return (1 + ret_diff.mean()) ** freq - 1
 
 
@@ -277,10 +271,6 @@ def bulk_stats_dict(stats) -> dict:
         drawdown=stats.backtest_drawdown)
     stats_dict['MaxDrawdown'] = max_drawdown(
         drawdown=stats.backtest_drawdown)
-    stats_dict['TrackingError'] = tracking_error(
-        ret_arr=stats.ret_arr,
-        bm_ret_arr=stats.bm_ret_arr,
-        freq=stats.freq)
     stats_dict['PainIndex'] = pain_index(
         drawdown=stats.backtest_drawdown)
     stats_dict['AverageLength'] = average_length(
@@ -288,7 +278,13 @@ def bulk_stats_dict(stats) -> dict:
     stats_dict['Alpha'] = alpha(
         ret_arr=stats.ret_arr,
         bm_ret_arr=stats.bm_ret_arr,
+        rf_arr=stats.rf_arr,
         freq=stats.freq)
+    stats_dict['TrackingError'] = tracking_error(
+        ret_arr=stats.ret_arr,
+        bm_ret_arr=stats.bm_ret_arr,
+        freq=stats.freq)
+    stats_dict['In_Info'] = stats_dict['Alpha']/stats_dict['TrackingError']
     stats_dict['Beta'] = beta(
         ret_arr=stats.ret_arr,
         bm_ret_arr=stats.bm_ret_arr)
@@ -311,6 +307,16 @@ def bulk_stats_dict(stats) -> dict:
     stats_dict['OutSD'] = sd(
         ret_arr=stats.out_ret_arr,
         freq=stats.freq)
+    stats_dict['OutAlpha'] = alpha(
+        ret_arr=stats.out_ret_arr,
+        bm_ret_arr=stats.out_bm_ret_arr,
+        rf_arr=stats.out_rf_arr,
+        freq=stats.freq)
+    stats_dict['OutTrackingError'] = tracking_error(
+        ret_arr=stats.out_ret_arr,
+        bm_ret_arr=stats.out_bm_ret_arr,
+        freq=stats.freq)
+    stats_dict['Out_Info'] = stats_dict['OutAlpha'] / stats_dict['OutTrackingError']
     return stats_dict
 
 if __name__ == "__main__":

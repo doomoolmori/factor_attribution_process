@@ -14,7 +14,7 @@ if __name__ == "__main__":
     cost = 0.003
     n_top = 20
     universe = 'korea'
-    pre_process = pre_processing.PreProcessing(universe=universe, n_top=20)
+    pre_process = pre_processing.PreProcessing(universe=universe, n_top=n_top)
 
 
     # 계산 완료되면 돌릴 필요 없어요 filter마다 stock_picking
@@ -49,11 +49,13 @@ if __name__ == "__main__":
         rebal=rebal)
     bm = make_bm.BM(pre_process)
     bm_series = bm.get_bm_series(cost=cost, rebal=rebal)
+    rf_series = bm.get_rf_series(rebal=rebal, index=list(bm_series.index)) / 100
 
     start = time.time()
     stats = serial_stats.StatsSeries(
         bulk_backtest_df=bulk_backtest_df,
-        bm_series=bm_series)
+        bm_series=bm_series,
+        rf_series=rf_series)
     stats.set_optional(
         rebal=rebal,
         in_sample_year=10,

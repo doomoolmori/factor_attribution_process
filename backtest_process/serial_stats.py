@@ -46,11 +46,12 @@ def date_information_dict(
 
 
 class StatsSeries:
-    def __init__(self, bulk_backtest_df, bm_series):
+    def __init__(self, bulk_backtest_df, bm_series, rf_series):
         self.bulk_backtest_df = bulk_backtest_df
         self.bulk_backtest_arr = bulk_backtest_df.to_numpy(dtype=np.float32)
         self.bm_series = bm_series
         self.bm_arr = bm_series.to_numpy(dtype=np.float32)
+        self.rf_arr = rf_series.to_numpy(dtype=np.float32).reshape(self.bm_arr.shape)
         self.index = pd.to_datetime(self.bulk_backtest_df.index)
 
     def set_optional(self, rebal, in_sample_year, out_sample_year, path):
@@ -65,6 +66,8 @@ class StatsSeries:
         self.stats.set_out_backtest_arr(out_backtest_arr=self.out_sample_arr)
         self.stats.set_bm_arr(bm_arr=self.in_sample_bm_arr)
         self.stats.set_out_bm_arr(out_bm_arr=self.out_sample_bm_arr)
+        self.stats.set_rf_arr(rf_arr=self.in_sample_rf_arr)
+        self.stats.set_out_rf_arr(out_rf_arr=self.out_sample_rf_arr)
 
     def set_in_sample(self, in_sample_start_date, in_sample_end_date):
         in_sample_index = get_sample_boolean_index(
@@ -73,6 +76,7 @@ class StatsSeries:
             end_date=in_sample_end_date)
         self.in_sample_arr = self.bulk_backtest_arr[in_sample_index, :].copy()
         self.in_sample_bm_arr = self.bm_arr[in_sample_index].copy()
+        self.in_sample_rf_arr = self.rf_arr[in_sample_index].copy()
 
     def set_out_sample(self, out_sample_start_date, out_sample_end_date):
         out_sample_index = get_sample_boolean_index(
@@ -81,6 +85,8 @@ class StatsSeries:
             end_date=out_sample_end_date)
         self.out_sample_arr = self.bulk_backtest_arr[out_sample_index, :].copy()
         self.out_sample_bm_arr = self.bm_arr[out_sample_index].copy()
+        self.out_sample_rf_arr = self.rf_arr[out_sample_index].copy()
+
 
     def set_date_information(self):
         self.date_information = date_information_dict(

@@ -22,18 +22,57 @@ def make_q_stat_dict(df:pd.DataFrame, total_q:int):
         stats_dict[f'{q}q'] = df.iloc[start:end, :].copy()
     return stats_dict
 
+#_10-3-q/strategy_stats
+path = f'data/us/strategy_stats_garbage_30'
+file_list = os.listdir(path)
+result_list = []
+for file in file_list[:-1]:
+    raw_df = pd.read_csv(f'{path}/{file}', index_col=0)
+    q_stats_dict = make_q_stat_dict(df=raw_df, total_q=5)
+    normal_df = q_stats_dict['normal']
 
-path = f'data/us/strategy_stats'
-raw_df = pd.read_csv(f'{path}/2003-01-31_q.csv', index_col=0)
-q_stats_dict = make_q_stat_dict(df=raw_df, total_q=5)
+    q_list = [q_stats_dict['1q']['Return'].values,
+             q_stats_dict['2q']['Return'].values,
+             q_stats_dict['3q']['Return'].values,
+             q_stats_dict['4q']['Return'].values,
+             q_stats_dict['5q']['Return'].values]
 
-q_stats_dict['normal']
+    q_list = np.array(q_list).T
+    normal_df['1q-5q'] = np.mean(q_list[:, :2], 1) - np.mean(q_list[:, -2:], 1)
+    normal_df['1q-5q'] = (normal_df['1q-5q'] - normal_df['1q-5q'].mean()) / normal_df['1q-5q'].std()
+    result_list.append(normal_df.copy())
+    print(f'{(normal_df[normal_df["1q-5q"] > 1.0]["Alpha"]).mean()}_{(normal_df[normal_df["1q-5q"] > 1.0]["SD"]).mean()}')
 
-q_stats_dict['1q']
-q_stats_dict['2q']
-q_stats_dict['3q']
-q_stats_dict['4q']
-q_stats_dict['5q']
+
+result_df = pd.concat(result_list, 0)
+
+#result_df['1q-5q'][(result_df['1q-5q']) > 1] = np.NAN
+#result_df['1q-5q'][(result_df['1q-5q']) < -1] = np.NAN
+
+ax = plt.figure()
+plt.scatter((result_df['1q-5q']), (result_df['OutReturn']))
+(result_df['1q-5q']).corr((result_df['OutReturn']))
+
+#ax = plt.figure()
+hurdle = 1.0
+plt.scatter((result_df['1q-5q'])[result_df['1q-5q'] > hurdle], (result_df['OutReturn'])[result_df['1q-5q'] > hurdle])
+(result_df['1q-5q'])[result_df['1q-5q'] > hurdle].corr((result_df['OutReturn'])[result_df['1q-5q'] > hurdle])
+
+plt.scatter((result_df['1q-5q'])[result_df['1q-5q'] < -hurdle], (result_df['OutReturn'])[result_df['1q-5q'] < -hurdle])
+(result_df['1q-5q'])[result_df['1q-5q'] < -hurdle].corr((result_df['OutReturn'])[result_df['1q-5q'] < -hurdle])
+
+
+print((result_df['OutReturn'])[result_df['1q-5q'] < -hurdle].mean())
+print((result_df['OutReturn'])[(result_df['1q-5q'] >= -hurdle) & (result_df['1q-5q'] <= hurdle)].mean())
+print((result_df['OutReturn'])[result_df['1q-5q'] > hurdle].mean())
+
+
+#filtered_df = result_df[result_df['1q-5q'] > 1]
+#ax = plt.figure()
+#plt.scatter((filtered_df['SD']), (filtered_df['OutReturn']))
+#filtered_df['Payoff_to_hitrate'].corr(filtered_df['OutReturn'])
+#filtered_df[filtered_df['OutReturn'] < 0].mean()
+
 
 """
 # garbage 10, 12, 19, 24 제거

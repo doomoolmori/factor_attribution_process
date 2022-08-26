@@ -1,6 +1,7 @@
 from data_process import calculation_rank
 from backtest_process import calculate_series
 import pandas as pd
+from dataturbo import DataTurbo
 
 
 class BM:
@@ -30,6 +31,15 @@ class BM:
             rebal=rebal)
         return pd.Series(series[month_index],
                          index=self.pre_process.adj_ri.index[month_index])
+
+    def get_rf_series(self, rebal: str, index: list):
+        api = DataTurbo()
+        rf = api.get_adj_price(['USGG10YR Index'], '1990-01-01', '2022-05-31')
+        if rebal == 'm':
+            rf = rf.resample('M').last() / 12
+        elif rebal == 'q':
+            rf = rf.resample('M').last() / 4
+        return rf.loc[index]
 
 
 if __name__ == "__main__":
