@@ -24,6 +24,7 @@ if __name__ == "__main__":
             filter_number=filter_number,
             asyncio_=True)
         picking.do_stock_pick()
+        picking.do_stock_pick_quantile(quantile=5)
 
     # picking_data_load
     picking_dict = stock_picking.get_stock_picking_dict(pre_process=pre_process)

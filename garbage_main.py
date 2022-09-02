@@ -10,10 +10,10 @@ import time
 start = time.time()
 
 if __name__ == "__main__":
-    rebal = 'q'  # or 'm'
+    rebal = 'm'  # or 'm'
     cost = 0.003
     n_top = 20
-    universe = 'us'
+    universe = 'korea'
     garbage_list = [False, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
                     11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
                     21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
@@ -29,7 +29,7 @@ if __name__ == "__main__":
             pre_process._rank_data_processing()
     """
     # 백테스팅
-    for garbage in garbage_list[:1]:
+    for garbage in garbage_list[:]:
         pre_process = pre_processing.PreProcessing(universe=universe, n_top=n_top, garbage=garbage)
 
         # 계산 완료되면 돌릴 필요 없어요 filter마다 stock_picking
@@ -39,7 +39,7 @@ if __name__ == "__main__":
                 filter_number=filter_number,
                 asyncio_=True)
             picking.do_stock_pick()
-            picking.do_stock_pick_quantile(quantile=5)
+            #picking.do_stock_pick_quantile(quantile=5)
 
         # picking_data_load
         picking_dict = stock_picking.get_stock_picking_dict(pre_process=pre_process)

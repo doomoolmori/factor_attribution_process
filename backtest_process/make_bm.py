@@ -34,7 +34,7 @@ class BM:
 
     def get_rf_series(self, rebal: str, index: list):
         api = DataTurbo()
-        rf = api.get_adj_price(['USGG10YR Index'], '1990-01-01', '2022-05-31')
+        rf = api.get_adj_price(['USGG10YR Index'], '1990-01-01', '2100-10-31')
         if rebal == 'm':
             rf = rf.resample('M').last() / 12
         elif rebal == 'q':
