@@ -193,51 +193,57 @@ if __name__ == "__main__":
     ## Rank IC 를 하려면, 모든 종목의 factor value를 구해야함.
     from scipy import stats
 
+    garbage_list = False
+
     from backtest_process import stock_picking
-    dict_of_rank = data_read.read_pickle(path='C:/Users/doomoolmori/factor_attribution_process/data/us_10_3_m',
-                                         name='us_dict_of_rank.pickle')
-    filter_number = 0
-    arr_of_rank_arr = []
-    for rank_arr in (dict_of_rank[filter_number].values()):
-        arr_of_rank_arr.append(rank_arr.to_numpy())
-    arr_of_rank_arr = np.array(arr_of_rank_arr)
-
-    adj_ri = data_read.read_csv_(path='C:/Users/doomoolmori/factor_attribution_process/data/us_10_3_m',
-                                 name='adj_ri.csv')
-
-    adj_ri.set_index('date_', inplace=True)
-    adj_after_pct = adj_ri.pct_change(3).shift(-3).to_numpy()#.rank(1).to_numpy()
 
     correlation = []
-    unpicked = []
-    for i in range(len(bulk_pct.columns)):
-    #for i in in_tag:
-        temp = bulk_pct.columns[i]
-        score_weight = [float(x) for x in temp.split('-')[-1][1:-1].split(',')]
-        after_pct = adj_after_pct.copy()
+    for garbage in garbage_list[1:]:
+        print(garbage)
+        bulk_backtest_df = get_bulk_data(garbage=garbage, folder_name=f'{universe}_10_3_{rebal}')
 
-        score_weight_arr = stock_picking.shape_mapping_array(
-            arr=arr_of_rank_arr,
-            score_weight=score_weight)
-        factor_rank_sum_arr = stock_picking.factor_rank_sum(
-            arr_of_rank_arr=arr_of_rank_arr,
-            score_weight_arr=score_weight_arr)
+        dict_of_rank = data_read.read_pickle(path='C:/Users/doomoolmori/factor_attribution_process/data/us_10_3_m',
+                                             name=f'us_dict_of_rank_garbage_{garbage}.pickle')
+        filter_number = 0
+        arr_of_rank_arr = []
+        for rank_arr in (dict_of_rank[filter_number].values()):
+            arr_of_rank_arr.append(rank_arr.to_numpy())
+        arr_of_rank_arr = np.array(arr_of_rank_arr)
 
-        joint = (~np.isnan(factor_rank_sum_arr)) & (~np.isnan(adj_after_pct))
-        factor_rank_sum_arr[~joint] = np.nan
-        after_pct[~joint] = np.nan
+        adj_ri = data_read.read_csv_(path='C:/Users/doomoolmori/factor_attribution_process/data/us_10_3_m',
+                                     name='adj_ri.csv')
 
-        a = stock_picking._rank(factor_rank_sum_arr, order='ascending')
-        b = stock_picking._rank(after_pct, order='ascending')
+        adj_ri.set_index('date_', inplace=True)
+        adj_after_pct = adj_ri.pct_change(1).shift(-1).to_numpy()#.rank(1).to_numpy()
 
-        result = stats.spearmanr(pd.Series(a.flatten()).dropna(), pd.Series(b.flatten()).dropna())
-        if i in in_tag:
-            correlation.append(result.correlation)
-        else:
-            unpicked.append(result.correlation)
-        print(f'{score_weight}_{result}')
+        for i in range(len(bulk_backtest_df.columns)):
+        #for i in in_tag:
+            temp = bulk_pct.columns[i]
+            score_weight = [float(x) for x in temp.split('-')[-1][1:-1].split(',')]
+            after_pct = adj_after_pct.copy()
+
+            score_weight_arr = stock_picking.shape_mapping_array(
+                arr=arr_of_rank_arr,
+                score_weight=score_weight)
+            factor_rank_sum_arr = stock_picking.factor_rank_sum(
+                arr_of_rank_arr=arr_of_rank_arr,
+                score_weight_arr=score_weight_arr)
+
+            joint = (~np.isnan(factor_rank_sum_arr)) & (~np.isnan(adj_after_pct))
+            factor_rank_sum_arr[~joint] = np.nan
+            after_pct[~joint] = np.nan
+
+            a = stock_picking._rank(factor_rank_sum_arr, order='ascending')
+            b = stock_picking._rank(after_pct, order='ascending')
+
+            result = stats.spearmanr(pd.Series(a.flatten()).dropna(), pd.Series(b.flatten()).dropna())
+            if 1:#i in in_tag:
+                correlation.append(result.correlation)
+            #else:
+            #    unpicked.append(result.correlation)
+            print(f'{score_weight}_{result}')
 
     plt.plot(correlation)
-    plt.plot(unpicked)
 
     np.mean(correlation)
+
