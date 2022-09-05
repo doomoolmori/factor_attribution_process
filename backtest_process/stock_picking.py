@@ -115,7 +115,6 @@ def stock_picker_q(final_rank_arr: np.array, total_q: int, current_q: int) -> np
     return (final_rank_arr >= under) & (final_rank_arr <= upper)
 
 
-
 def loop_pick_stock_(kwargs):
     point = asyncio_function.async_start_end(**kwargs)
 
@@ -159,7 +158,6 @@ def loop_pick_stock_q(kwargs):
         data_read.save_to_pickle(any_=picked_stock_idx,
                                  path=kwargs['path'],
                                  name=name)
-
 
 
 def _read_stock_picking_dict(pre_process):

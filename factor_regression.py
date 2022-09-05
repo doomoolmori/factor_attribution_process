@@ -150,6 +150,8 @@ if __name__ == "__main__":
 
     ina_uf = []
     outa_uf = []
+
+    in_tag = []
     for j in range(0, len(garbage_list[:1])):
         fit_model = np.array(total_alpha_list)[j, :, :] * model_para.params[1] + model_para.params[0]
         fit_garbage = np.array(total_alpha_list)[j, :, :] * garbage_para.params[1] + garbage_para.params[0]
@@ -162,6 +164,7 @@ if __name__ == "__main__":
                 print(i)
                 ina_f.append(temp_in.mean())
                 outa_f.append(temp_out.mean())
+                in_tag.append(i)
             else:
                 ina_uf.append(temp_in.mean())
                 outa_uf.append(temp_out.mean())
@@ -185,44 +188,56 @@ if __name__ == "__main__":
     np.array(outa_f)[np.array(ina_f) > 0.00].mean()
 
 
-    up / down
 
     ## filter 2 ##
     ## Rank IC 를 하려면, 모든 종목의 factor value를 구해야함.
+    from scipy import stats
 
-    ## GRS는 조금 더 연구가 필요함.
-    import numpy as np
-    from scipy.stats import f
+    from backtest_process import stock_picking
+    dict_of_rank = data_read.read_pickle(path='C:/Users/doomoolmori/factor_attribution_process/data/us_10_3_m',
+                                         name='us_dict_of_rank.pickle')
+    filter_number = 0
+    arr_of_rank_arr = []
+    for rank_arr in (dict_of_rank[filter_number].values()):
+        arr_of_rank_arr.append(rank_arr.to_numpy())
+    arr_of_rank_arr = np.array(arr_of_rank_arr)
 
+    adj_ri = data_read.read_csv_(path='C:/Users/doomoolmori/factor_attribution_process/data/us_10_3_m',
+                                 name='adj_ri.csv')
 
-    def grs(res_output, N, K, factors):
-        T = res_output.nobs  # number of time-series observations
-        N = N  # number of portfolios
-        K = K  # number of factors
-        # dividing the GRS equation into 3 sections a, b and ctosimplyfy
-        # Part a
-        a = (T - N - K) / N
-        # Part b
-        # omega hat should be a K x K matrix (verified and True)
-        E_f = factors.mean()
-        omega_hat = (1 / T) * (factors - E_f).T.dot(factors - E_f)
-        # b should be a scalar (verified and True)
-        omega_hat_inv = np.linalg.pinv(omega_hat)  # pseudo-inverse
-        b = 1 + ((E_f.T).dot(omega_hat_inv).dot(E_f))
-        b_inv = b ** (-1)
-        # Part c
-        # sigma hat should be a N x N matrix (verified and True)
-        sigma_hat = res_output.std_errors
-        sigma_hat = (sigma_hat).dot(sigma_hat.T)
-        sigma_hat_inv = np.linalg.pinv(sigma_hat)  # pseudo-inverse
-        alpha_hat = res_output.alphas
-        c = alpha_hat.dot(sigma_hat_inv).dot(alpha_hat.T)
-        # Putting the 3 GRS parts together
-        grs = a * b_inv * c
-        print(grs)
+    adj_ri.set_index('date_', inplace=True)
+    adj_after_pct = adj_ri.pct_change(3).shift(-3).to_numpy()#.rank(1).to_numpy()
 
-        dfn = N
-        dfd = T - N - K
+    correlation = []
+    unpicked = []
+    for i in range(len(bulk_pct.columns)):
+    #for i in in_tag:
+        temp = bulk_pct.columns[i]
+        score_weight = [float(x) for x in temp.split('-')[-1][1:-1].split(',')]
+        after_pct = adj_after_pct.copy()
 
-        p_value = 1 - f.cdf(grs, dfn, dfd)
-        print('p-value', p_value)
+        score_weight_arr = stock_picking.shape_mapping_array(
+            arr=arr_of_rank_arr,
+            score_weight=score_weight)
+        factor_rank_sum_arr = stock_picking.factor_rank_sum(
+            arr_of_rank_arr=arr_of_rank_arr,
+            score_weight_arr=score_weight_arr)
+
+        joint = (~np.isnan(factor_rank_sum_arr)) & (~np.isnan(adj_after_pct))
+        factor_rank_sum_arr[~joint] = np.nan
+        after_pct[~joint] = np.nan
+
+        a = stock_picking._rank(factor_rank_sum_arr, order='ascending')
+        b = stock_picking._rank(after_pct, order='ascending')
+
+        result = stats.spearmanr(pd.Series(a.flatten()).dropna(), pd.Series(b.flatten()).dropna())
+        if i in in_tag:
+            correlation.append(result.correlation)
+        else:
+            unpicked.append(result.correlation)
+        print(f'{score_weight}_{result}')
+
+    plt.plot(correlation)
+    plt.plot(unpicked)
+
+    np.mean(correlation)
