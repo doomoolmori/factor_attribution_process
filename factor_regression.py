@@ -129,35 +129,32 @@ if __name__ == "__main__":
     x = np.array(total_alpha_list)[1:, 61:, :].flatten().copy()
     y = np.array(total_alpha_list_out)[1:, 61:, :].flatten().copy()
 
-    ax = scatter_plot(x, y)
-    ax.remove()
+    #ax = scatter_plot(x, y)
 
-    pd.Series(x).corr(pd.Series(y))
-
-    plt.scatter(np.array(total_return_list).flatten(),
-                np.array(total_alpha_list).flatten())
+    #plt.scatter(np.array(total_return_list).flatten(),
+    #            np.array(total_alpha_list).flatten())
     pd.Series(np.array(total_return_list).flatten() / np.array(total_sd_list).flatten()).corr(
         pd.Series(np.array(total_alpha_list_out).flatten()))
 
-    ## filter 1 ##
-    model_para = sm.OLS(np.array(total_alpha_list)[:1, :, :].flatten(),
-                        sm.add_constant(np.array(total_alpha_list_out)[:1, :, :].flatten())).fit()
-    garbage_para = sm.OLS(np.array(total_alpha_list)[1:, :, :].flatten(),
-                          sm.add_constant(np.array(total_alpha_list_out)[1:, :, :].flatten())).fit()
 
+    ## filter 1 ##
+    model_in_idx = 13
+
+    model_para = sm.OLS(np.array(total_alpha_list)[:1, :model_in_idx, :].flatten(),
+                        sm.add_constant(np.array(total_alpha_list_out)[:1, :model_in_idx, :].flatten())).fit()
+    garbage_para = sm.OLS(np.array(total_alpha_list)[1:, :model_in_idx, :].flatten(),
+                          sm.add_constant(np.array(total_alpha_list_out)[1:, :model_in_idx, :].flatten())).fit()
     ina_f = []
     outa_f = []
-
     ina_uf = []
     outa_uf = []
-
     in_tag = []
     for j in range(0, len(garbage_list[:1])):
-        fit_model = np.array(total_alpha_list)[j, :, :] * model_para.params[1] + model_para.params[0]
-        fit_garbage = np.array(total_alpha_list)[j, :, :] * garbage_para.params[1] + garbage_para.params[0]
+        fit_model = np.array(total_alpha_list)[j, :model_in_idx, :] * model_para.params[1] + model_para.params[0]
+        fit_garbage = np.array(total_alpha_list)[j, :model_in_idx, :] * garbage_para.params[1] + garbage_para.params[0]
         for i in range(0, 715):
-            temp_in = np.array(total_alpha_list)[j, :, i]
-            temp_out = np.array(total_alpha_list_out)[j, :, i]
+            temp_in = np.array(total_alpha_list)[j, :model_in_idx, i]
+            temp_out = np.array(total_alpha_list_out)[j, :model_in_idx, i]
             mf = np.sqrt(sum((fit_model[:, i] - temp_out) ** 2))
             gf = np.sqrt(sum((fit_garbage[:, i] - temp_out) ** 2))
             if mf < gf:
@@ -168,42 +165,51 @@ if __name__ == "__main__":
             else:
                 ina_uf.append(temp_in.mean())
                 outa_uf.append(temp_out.mean())
+    #np.sqrt(sum((np.array(ina_f) - np.array(outa_f)) ** 2))
+    #(np.array(ina_f) - np.array(outa_f)).std()
+    #np.sqrt(sum((np.array(ina_uf) - np.array(outa_uf)) ** 2))
+    #np.array(outa_f).mean() - np.array(outa_uf).mean()
 
-    np.sqrt(sum((np.array(ina_f) - np.array(outa_f)) ** 2))
-    (np.array(ina_f) - np.array(outa_f)).std()
-    np.sqrt(sum((np.array(ina_uf) - np.array(outa_uf)) ** 2))
-    np.array(outa_f).mean() - np.array(outa_uf).mean()
-
-    plt.plot(ina_f)
-    plt.plot(outa_f)
-
-    plt.plot(ina_uf)
-    plt.plot(outa_uf)
-
+    """
     up = np.array(outa_f).mean() - np.array(outa_uf).mean()
     down = np.sqrt((((len(outa_f) - 1) * (np.array(outa_f).std() ** 2) + (len(outa_uf) - 1) * (
                 np.array(outa_uf).std() ** 2)) / (len(outa_f) + len(outa_uf) - 2)) * (
                                1 / len(outa_f) + 1 / len(outa_uf)))
-
     np.array(outa_f)[np.array(ina_f) > 0.00].mean()
-
-
+    """
 
     ## filter 2 ##
+    ## 2 - 1
+    temp = np.array(total_alpha_list)
+    garbage = 0
+    picked_t_value = []
+    garbage_t_value = []
+    filtered_tag = []
+    for garbage in range(1):#len(temp)):
+        for stg in range(715):
+            a = temp[garbage, :model_in_idx + 36, stg]
+            t_value = a.mean() / (a.std() / np.sqrt(len(a) - 1))
+            if garbage == 0:
+                picked_t_value.append(t_value)
+            else:
+                garbage_t_value.append(t_value)
+            if t_value > 40:
+                filtered_tag.append(stg)
+            print(f'{t_value}_{stg}')
+
+
     ## Rank IC 를 하려면, 모든 종목의 factor value를 구해야함.
     from scipy import stats
-
-    garbage_list = False
-
+    #garbage_list = False
     from backtest_process import stock_picking
 
+    picked = []
     correlation = []
-    for garbage in garbage_list[1:]:
+    for garbage in garbage_list[:1]:
         print(garbage)
         bulk_backtest_df = get_bulk_data(garbage=garbage, folder_name=f'{universe}_10_3_{rebal}')
-
         dict_of_rank = data_read.read_pickle(path='C:/Users/doomoolmori/factor_attribution_process/data/us_10_3_m',
-                                             name=f'us_dict_of_rank_garbage_{garbage}.pickle')
+                                             name=f'us_dict_of_rank.pickle') # _garbage_{garbage}
         filter_number = 0
         arr_of_rank_arr = []
         for rank_arr in (dict_of_rank[filter_number].values()):
@@ -214,7 +220,8 @@ if __name__ == "__main__":
                                      name='adj_ri.csv')
 
         adj_ri.set_index('date_', inplace=True)
-        adj_after_pct = adj_ri.pct_change(1).shift(-1).to_numpy()#.rank(1).to_numpy()
+        adj_after_pct = (adj_ri.pct_change(3).shift(-3)).loc[adj_ri.index <= '2016-09-31'].to_numpy()#.rank(1).to_numpy()
+
 
         for i in range(len(bulk_backtest_df.columns)):
         #for i in in_tag:
@@ -229,7 +236,10 @@ if __name__ == "__main__":
                 arr_of_rank_arr=arr_of_rank_arr,
                 score_weight_arr=score_weight_arr)
 
-            joint = (~np.isnan(factor_rank_sum_arr)) & (~np.isnan(adj_after_pct))
+            factor_rank_sum_arr = factor_rank_sum_arr[len(adj_after_pct) - 120:len(adj_after_pct), :]
+            after_pct = adj_after_pct[len(adj_after_pct) - 120:]
+
+            joint = (~np.isnan(factor_rank_sum_arr)) & (~np.isnan(after_pct))
             factor_rank_sum_arr[~joint] = np.nan
             after_pct[~joint] = np.nan
 
@@ -241,9 +251,33 @@ if __name__ == "__main__":
                 correlation.append(result.correlation)
             #else:
             #    unpicked.append(result.correlation)
+            if result.correlation > 0.045:
+                picked.append(i)
             print(f'{score_weight}_{result}')
-
-    plt.plot(correlation)
-
+    #plt.plot(correlation)
     np.mean(correlation)
 
+
+    from data_process import pre_processing
+    from backtest_process import make_bm
+    rebal = 'm'  # or 'm'
+    cost = 0.003
+    n_top = 20
+    universe = 'us'
+    pre_process = pre_processing.PreProcessing(
+        universe=universe,
+        n_top=n_top)
+    bm = make_bm.BM(pre_process)
+    #rebal = 'q'
+    #bulk_backtest_df = get_bulk_data(garbage=garbage, folder_name=f'{universe}_10_3_{rebal}')
+    intersection = picked  # list(set(filtered_tag) & set(picked) & set(in_tag)) #& set(in_tag)
+    bulk_backtest_df.iloc[:, intersection]
+
+    fit_model = np.array(total_alpha_list)[j, model_in_idx + 36, intersection] * model_para.params[1] + model_para.params[0]
+
+    result = bulk_backtest_df.iloc[:, intersection]
+    result = result.loc[result.index >= '2017-01-01']
+    result.loc['expected'] = fit_model
+    result = pd.concat([result, bm.get_bm_series(cost=cost, rebal=rebal)], 1)
+
+    (result/result.iloc[0, :]).to_csv('2017.csv')
