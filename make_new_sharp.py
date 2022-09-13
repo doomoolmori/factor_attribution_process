@@ -29,7 +29,7 @@ def universe_filter_df(df: pl.DataFrame, universe: str) -> pl.DataFrame:
 
 path = 'C:/Users/doomoolmori/factor_attribution_process'
 # path = "C:/Users/SUNGHO/Documents\GitHub/factor_attribution_process"
-name = "2022-05-27_cosmos-univ-with-factors_with-finval_global_monthly.csv"
+name = "2022-07-22_cosmos-univ-with-factors_with-finval_global_monthly.csv"
 raw_data = read_raw_data_df(path, name)
 
 universe_selection = "Univ_S&P500"
@@ -275,6 +275,9 @@ def get_factor_decomposition(univ_factor_df, topN_weight, all_infocode_roc_month
 
     result = {'decomposed_df': decomposed_df,
               'decomposition_ts_df': decomposition_ts_df}
+
+    decomposition_ts_df.to_csv('simon_.csv')
+
     return result
 
 
@@ -296,8 +299,26 @@ import numpy as np
 import pandas as pd
 from backtest_process import calculate_weight
 
+
 # univ_factor_df_i['Price/Earnings Ratio - Current'][univ_factor_df_i['Price/Earnings Ratio - Current'] < 0] = \
 # univ_factor_df_i['Price/Earnings Ratio - Current'].median()
+
+
+def shift_plus(arr, num, fill_value):
+    assert num > 0, print('num error')
+    result = np.empty_like(arr)
+    result[:num] = fill_value
+    result[num:] = arr[:-num]
+    return result
+
+
+def shift_minus(arr, num, fill_value):
+    assert num < 0, print('num error')
+    result = np.empty_like(arr)
+    result[num:] = fill_value
+    result[:num] = arr[-num:]
+    return result
+
 
 dict_of_data = data_read.read_pickle(
     path='C:/Users/doomoolmori/factor_attribution_process/data/us',
@@ -348,90 +369,62 @@ weight_df = pd.DataFrame(weight,
                          index=adj_ri.index)
 
 sample_series = ((price_df.pct_change().shift(-1) * weight_df).sum(1) + 1).cumprod() * 100
-
 sample_series = sample_series.shift(1)
 sample_series[0] = 100
+sample_series = sample_series.to_numpy()
+after_pct = price_df.pct_change().shift(-1).to_numpy()
 
+quantity = (sample_series.reshape(236, 1) * weight_df.to_numpy()) / price_arr
+after_quantity = quantity * (1 + after_pct)
 
-quantity = (sample_series.to_numpy().reshape(234, 1) * weight_df.to_numpy()) / price_arr
-after_quantity = quantity * (1 + price_df.pct_change().shift(-1).fillna(method='ffill').to_numpy())
-
+# NumPy 버전 <= 1.9.0에서는 모든 NaN이거나 비어있는 슬라이스에 대해 Nan이 반환됩니다. 이후 버전에서는 0이 반환됩니다.
 holding_i_EPS = np.nansum(after_quantity[:, :] * eps_arr[:, :], 1)
+holding_i_EPS[-1] = holding_i_EPS[-2]
+
 i_EPS = np.nansum(quantity[:, :] * eps_arr[:, :], 1)
-holding_i_amount = sample_series.shift(-1).fillna(method='bfill').to_numpy()
-i_amount = sample_series.to_numpy()
+holding_i_amount = shift_minus(sample_series, -1, np.nan)
+i_amount = sample_series.copy()
 
 holding_i_PRICE = np.nansum(after_quantity * price_arr, 1)
-holding_i_PER = (holding_i_PRICE/holding_i_EPS)
+holding_i_PRICE[-1] = holding_i_PRICE[-2]
+holding_i_PER = (holding_i_PRICE / holding_i_EPS)
 
 i_PRICE = np.nansum(quantity * price_arr, 1)
-PER = (i_PRICE/i_EPS)
+PER = (i_PRICE / i_EPS)
+
+ma_price = price_arr
+
+i_short_MA = np.nansum(quantity * ma_price, 1)
+holding_i_short_MA = np.nansum(after_quantity * ma_price, 1)
+holding_i_short_MA[-1] = holding_i_short_MA[-2]
+i_NOISE = i_PRICE / i_short_MA
+holding_i_NOISE = holding_i_PRICE / holding_i_short_MA
+
+EPS_shift = shift_plus(i_EPS, 1, np.nan)
+
+holding_NOISE_change = holding_i_NOISE / shift_plus(i_NOISE, 1, np.nan) - 1
+holding_EARNINGS_change = holding_i_EPS / EPS_shift - 1
+
+holding_PER_change = holding_i_PER / shift_plus(PER, 1, np.nan) - 1
+
+rebalancing_EARNINGS_change = i_EPS / holding_i_EPS - 1
+rebalancing_NOISE_change = i_NOISE / holding_i_NOISE - 1
 
 
 
-eps = i_holdings['RI'] * (1 / i_holdings['Price/Earnings Ratio - Current'])
-
-quan_df = weight_df / weight_df
-
-np.nansum((eps_arr * quan_df.to_numpy())[0, :])
-np.nansum((price_arr * quan_df.to_numpy())[0, :]) / np.nansum((eps_arr * quan_df.to_numpy())[0, :])
-
-####
-if i == topN_weight.index[0]:
-    i_rebal_before_holdings['end_weight'] = i_rebal_before_holdings['begin_weight']
-    i_rebal_before_holdings['holding_end_amount'] = i_rebal_before_holdings['begin_amount']
-
-if len(i_rebal_before_holdings) > 0:
-    i_rebal_before_holdings['Noise'] = i_rebal_before_holdings['RI'] / i_rebal_before_holdings['short_MA']
-    i_rebal_before_holdings['shares'] = i_rebal_before_holdings['holding_end_amount'] / i_rebal_before_holdings[
-        'RI']
-    i_rebal_before_holdings['ma_shares'] = i_rebal_before_holdings['holding_end_amount'] / \
-                                           i_rebal_before_holdings['short_MA']
-    i_rebal_before_holdings['EARNINGS'] = i_rebal_before_holdings['Market Capitalization - Current (U.S.$)'] / \
-                                          i_rebal_before_holdings['Price/Earnings Ratio - Current']
-    i_rebal_before_holdings['total_shares'] = i_rebal_before_holdings[
-                                                  'Market Capitalization - Current (U.S.$)'] / \
-                                              i_rebal_before_holdings['RI']
-    i_rebal_before_holdings['EPS'] = i_rebal_before_holdings['RI'] * (
-            1 / i_rebal_before_holdings['Price/Earnings Ratio - Current'])
-    i_rebal_before_holdings['MA_EPS'] = i_rebal_before_holdings['short_MA'] * (
-            1 / i_rebal_before_holdings['Price/Earnings Ratio - Current'])
-    i_rebal_before_holdings['PER_'] = i_rebal_before_holdings['Market Capitalization - Current (U.S.$)'] * (
-            1 / i_rebal_before_holdings['EARNINGS'])
-
-    holding_i_amount = i_rebal_before_holdings['holding_end_amount'].sum()
-    holding_i_EARNINGS = i_rebal_before_holdings['EARNINGS'].sum()
-    holding_i_PRICE = (i_rebal_before_holdings['shares'] * i_rebal_before_holdings['RI']).sum()
-    holding_i_short_MA = (i_rebal_before_holdings['shares'] * i_rebal_before_holdings['short_MA']).sum()
-    holding_i_EPS = (i_rebal_before_holdings['shares'] * i_rebal_before_holdings['EPS']).sum()
-    holding_i_MA_EPS = (i_rebal_before_holdings['ma_shares'] * i_rebal_before_holdings['EPS']).sum()
-
-i_holdings['Noise'] = i_holdings['RI'] / i_holdings['short_MA']
-i_holdings['shares'] = i_holdings['begin_amount'] / i_holdings['RI']
-i_holdings['ma_shares'] = i_holdings['begin_amount'] / i_holdings['short_MA']
-i_holdings['EARNINGS'] = i_holdings['Market Capitalization - Current (U.S.$)'] / i_holdings[
-    'Price/Earnings Ratio - Current']
-i_holdings['total_shares'] = i_holdings['Market Capitalization - Current (U.S.$)'] / i_holdings['RI']
-i_holdings['EPS'] = i_holdings['RI'] * (1 / i_holdings['Price/Earnings Ratio - Current'])
-i_holdings['MA_EPS'] = i_holdings['short_MA'] * (1 / i_holdings['Price/Earnings Ratio - Current'])
-i_holdings['PER_'] = i_holdings['Market Capitalization - Current (U.S.$)'] * (1 / i_holdings['EARNINGS'])
-
-i_amount = i_holdings['begin_amount'].sum()
-i_PRICE = (i_holdings['shares'] * i_holdings['RI']).sum()
-i_short_MA = (i_holdings['shares'] * i_holdings['short_MA']).sum()
-i_EPS = (i_holdings['shares'] * i_holdings['EPS']).sum()
-i_MA_EPS = (i_holdings['ma_shares'] * i_holdings['EPS']).sum()
-
-decomposition_dic[i] = pd.Series({'date_': i, 'i_amount': i_amount, 'holding_i_amount': holding_i_amount,
-                                  'holding_i_EPS': holding_i_EPS, 'holding_i_MA_EPS': holding_i_MA_EPS,
-                                  'holding_i_NOISE': holding_i_PRICE / holding_i_short_MA,
-                                  'holding_i_PER': holding_i_PRICE / holding_i_EPS,
-                                  'holding_i_MA_PER': holding_i_short_MA / holding_i_EPS,
-                                  'i_EPS': i_EPS,
-                                  'i_MA_EPS': i_MA_EPS,
-                                  'i_NOISE': i_PRICE / i_short_MA,
-                                  'PER': i_PRICE / i_EPS,
-                                  'MA_PER': i_short_MA / i_EPS})
+decomposition_ts_df.loc[decomposition_ts_df['i_EPS'] < 0, info_cols] = np.nan
+decomposition_ts_df.loc[decomposition_ts_df['holding_i_EPS'] < 0, info_cols] = np.nan
+decomposition_ts_df = decomposition_ts_df.ffill()
+decomposition_ts_df['holding_MA_EARNINGS_change'] = decomposition_ts_df['holding_i_MA_EPS'] / decomposition_ts_df[
+    'i_MA_EPS'].shift() - 1
+decomposition_ts_df['holding_MA_PER_change'] = decomposition_ts_df['holding_i_MA_PER'] / decomposition_ts_df[
+    'MA_PER'].shift() - 1
+decomposition_ts_df['rebalancing_MA_EARNINGS_change'] = decomposition_ts_df['i_MA_EPS'] / decomposition_ts_df[
+    'holding_i_EPS'] - 1
+decomposition_ts_df['rebalancing_PER_change'] = decomposition_ts_df['MA_PER'] / decomposition_ts_df[
+    'holding_i_MA_PER'] - 1
+decomposition_ts_df['rebalancing_noise_change'] = decomposition_ts_df['rebalancing_EARNINGS_change'] - \
+                                                  decomposition_ts_df['rebalancing_MA_EARNINGS_change']
 
 
 ## 차이나는 것은 ADJ_RI 와 RI 라 추정 아래 두 코드는 같으나 RI는 다르다는 것을 확인.

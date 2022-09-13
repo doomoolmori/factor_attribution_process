@@ -13,7 +13,7 @@ if __name__ == "__main__":
     rebal = 'q'  # or 'm'
     cost = 0.003
     n_top = 20
-    universe = 'korea'
+    universe = 'us'
     pre_process = pre_processing.PreProcessing(universe=universe, n_top=n_top)
 
 

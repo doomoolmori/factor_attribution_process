@@ -11,7 +11,7 @@ FACTOR_FILTER_NAME = 'QT_filter.csv'
 
 
 RAW_DATA_PATH = f'{os.getcwd()}/'
-RAW_DATA_NAME = '2022-05-27_cosmos-univ-with-factors_with-finval_global_monthly.csv'
+RAW_DATA_NAME = '2022-07-22_cosmos-univ-with-factors_with-finval_global_monthly.csv'
 
 KOREA_PATH_DICT = {
     'DATA_PATH': f'{os.getcwd()}/data/korea',
