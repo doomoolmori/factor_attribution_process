@@ -11,7 +11,7 @@ import os
 import pickle
 import numpy as np
 
-
+"""
 def read_raw_data_df(path: str, name: str) -> pl.DataFrame:
     # file = f'{data_path.RAW_DATA_PATH}/{data_path.RAW_DATA_NAME}'
     file_name = f'{path}/{name}'
@@ -63,14 +63,14 @@ topN_weight = weight_df
 all_infocode_roc_monthly = adj_ri.pct_change()
 trading_cost = 0.003
 rebalancing_freq = 'm'
-col_list = ['date_', 'infocode', 'ticker', 'RI', 'Market Capitalization - Current (U.S.$)',
+col_list = ['date_', 'infocode', 'ticker', 'RI', 'RI_ma_20d','Market Capitalization - Current (U.S.$)',
             'Price/Book Value Ratio - Current', 'Price/Earnings Ratio - Current',
             'Net Sales Or Revenues (Q)', 'Ebit & Depreciation (Q)']
 
 
 def get_factor_decomposition(univ_factor_df, topN_weight, all_infocode_roc_monthly, trading_cost, rebalancing_freq='m'):
     univ_factor_df = univ_factor_df[col_list]
-    univ_factor_df['short_MA'] = univ_factor_df['RI']
+    univ_factor_df['short_MA'] = univ_factor_df['RI_ma_20d']
     univ_factor_df = univ_factor_df[~univ_factor_df['short_MA'].is_null()]
 
     begin_weight_df = topN_weight
@@ -291,7 +291,7 @@ print("time :", time.time() - start)
 ### FactorGen_fun.R 833 line 까지
 ##### R -> factorGen_fun.R 519줄 solution_holding_weight_dt 길이가 univ_factor_dt_monthly 길이보다 길다?? univ_factor_dt_monthly가 더 길어야 하는거 아닌가..?
 #### polars 데이터 합치는거 우째하노..\
-
+"""
 
 ##########################
 from data_process import data_read
@@ -320,6 +320,8 @@ def shift_minus(arr, num, fill_value):
     return result
 
 
+
+path = 'C:/Users/doomoolmori/factor_attribution_process'
 dict_of_data = data_read.read_pickle(
     path='C:/Users/doomoolmori/factor_attribution_process/data/us',
     name='us_dict_of_data.pickle')
@@ -331,22 +333,20 @@ price_df = data_read.read_csv_(path=path + '/data/us',
                                name='adj_ri.csv')
 price_df.set_index('date_', inplace=True)
 
-"""
-data_read.read_csv_(
-path='C:/Users/doomoolmori/factor_attribution_process/data/us',
-name='adj_ri.csv')
-price_df.set_index('date_', inplace=True)
-
-"""
 pe_df = dict_of_data['Price/Earnings Ratio - Current']
 
+ma_price_df = dict_of_data['RI_ma_20d']
+
+
 price_arr = price_df.to_numpy(dtype=np.float32)
+ma_price_arr = ma_price_df.to_numpy(dtype=np.float32)
 median_pe_arr = pe_df.median(1).to_numpy(dtype=np.float32)
 pe_arr = pe_df.to_numpy(dtype=np.float32)
 
 minus_pe_arr = (pe_arr < 0) * median_pe_arr.reshape((len(median_pe_arr), 1))
 adj_pe_arr = pe_arr * (pe_arr > 0) + minus_pe_arr
 eps_arr = price_arr / adj_pe_arr
+ma_eps_arr = ma_price_arr / adj_pe_arr
 
 pct = price_df.pct_change().shift(-1)
 
@@ -361,12 +361,12 @@ sample_series = series_df[stg_name] * 100
 
 weight = calculate_weight.make_equal_weight_arr(
     stock_pick=picked_stock,
-    number_of_columns=len(adj_ri.columns),
-    number_of_raws=len(adj_ri.index))
+    number_of_columns=len(price_df.columns),
+    number_of_raws=len(price_df.index))
 
 weight_df = pd.DataFrame(weight,
-                         columns=adj_ri.columns,
-                         index=adj_ri.index)
+                         columns=price_df.columns,
+                         index=price_df.index)
 
 sample_series = ((price_df.pct_change().shift(-1) * weight_df).sum(1) + 1).cumprod() * 100
 sample_series = sample_series.shift(1)
@@ -377,13 +377,28 @@ after_pct = price_df.pct_change().shift(-1).to_numpy()
 quantity = (sample_series.reshape(236, 1) * weight_df.to_numpy()) / price_arr
 after_quantity = quantity * (1 + after_pct)
 
+ma_quantity = (sample_series.reshape(236, 1) * weight_df.to_numpy()) / ma_price_arr
+after_ma_quantity = ma_quantity * (1 + after_pct)
+
+
+i_EPS = np.nansum(quantity[:, :] * eps_arr[:, :], 1)
+i_amount = sample_series.copy()
+holding_i_amount = shift_minus(sample_series, -1, np.nan)
 # NumPy 버전 <= 1.9.0에서는 모든 NaN이거나 비어있는 슬라이스에 대해 Nan이 반환됩니다. 이후 버전에서는 0이 반환됩니다.
 holding_i_EPS = np.nansum(after_quantity[:, :] * eps_arr[:, :], 1)
 holding_i_EPS[-1] = holding_i_EPS[-2]
 
-i_EPS = np.nansum(quantity[:, :] * eps_arr[:, :], 1)
-holding_i_amount = shift_minus(sample_series, -1, np.nan)
-i_amount = sample_series.copy()
+i_MA_EPS = np.nansum(ma_quantity[:, :] * eps_arr[:, :], 1)
+holding_i_MA_EPS = np.nansum(after_ma_quantity[:, :] * eps_arr[:, :], 1)
+holding_i_MA_EPS[-1] = holding_i_MA_EPS[-2]
+
+i_short_MA = np.nansum(quantity * ma_price_arr, 1)
+MA_PER = i_short_MA / i_EPS
+
+holding_i_short_MA = np.nansum(after_quantity * ma_price_arr, 1)
+holding_i_short_MA[-1] = holding_i_short_MA[-2]
+holding_i_MA_PER = holding_i_short_MA/holding_i_EPS
+holding_i_MA_PER
 
 holding_i_PRICE = np.nansum(after_quantity * price_arr, 1)
 holding_i_PRICE[-1] = holding_i_PRICE[-2]
@@ -392,10 +407,9 @@ holding_i_PER = (holding_i_PRICE / holding_i_EPS)
 i_PRICE = np.nansum(quantity * price_arr, 1)
 PER = (i_PRICE / i_EPS)
 
-ma_price = price_arr
 
-i_short_MA = np.nansum(quantity * ma_price, 1)
-holding_i_short_MA = np.nansum(after_quantity * ma_price, 1)
+i_short_MA = np.nansum(quantity * ma_price_arr, 1)
+holding_i_short_MA = np.nansum(after_quantity * ma_price_arr, 1)
 holding_i_short_MA[-1] = holding_i_short_MA[-2]
 i_NOISE = i_PRICE / i_short_MA
 holding_i_NOISE = holding_i_PRICE / holding_i_short_MA
@@ -412,19 +426,18 @@ rebalancing_NOISE_change = i_NOISE / holding_i_NOISE - 1
 
 
 
+holding_MA_EARNINGS_change = holding_i_MA_EPS / shift_plus(i_MA_EPS, 1, np.nan) - 1
+
+MA_PER = i_short_MA / i_EPS
+holding_MA_PER_change = holding_i_MA_PER / shift_plus(MA_PER, 1, np.nan) - 1
+rebalancing_MA_EARNINGS_change = i_MA_EPS / holding_i_EPS - 1
+rebalancing_PER_change = MA_PER / holding_i_MA_PER - 1
+rebalancing_noise_change = rebalancing_EARNINGS_change - rebalancing_MA_EARNINGS_change
+
+##
 decomposition_ts_df.loc[decomposition_ts_df['i_EPS'] < 0, info_cols] = np.nan
 decomposition_ts_df.loc[decomposition_ts_df['holding_i_EPS'] < 0, info_cols] = np.nan
 decomposition_ts_df = decomposition_ts_df.ffill()
-decomposition_ts_df['holding_MA_EARNINGS_change'] = decomposition_ts_df['holding_i_MA_EPS'] / decomposition_ts_df[
-    'i_MA_EPS'].shift() - 1
-decomposition_ts_df['holding_MA_PER_change'] = decomposition_ts_df['holding_i_MA_PER'] / decomposition_ts_df[
-    'MA_PER'].shift() - 1
-decomposition_ts_df['rebalancing_MA_EARNINGS_change'] = decomposition_ts_df['i_MA_EPS'] / decomposition_ts_df[
-    'holding_i_EPS'] - 1
-decomposition_ts_df['rebalancing_PER_change'] = decomposition_ts_df['MA_PER'] / decomposition_ts_df[
-    'holding_i_MA_PER'] - 1
-decomposition_ts_df['rebalancing_noise_change'] = decomposition_ts_df['rebalancing_EARNINGS_change'] - \
-                                                  decomposition_ts_df['rebalancing_MA_EARNINGS_change']
 
 
 ## 차이나는 것은 ADJ_RI 와 RI 라 추정 아래 두 코드는 같으나 RI는 다르다는 것을 확인.
