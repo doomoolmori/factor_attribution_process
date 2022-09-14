@@ -10,7 +10,7 @@ import time
 start = time.time()
 
 if __name__ == "__main__":
-    rebal = 'q'  # or 'm'
+    rebal = 'm'  # or 'm'
     cost = 0.003
     n_top = 20
     universe = 'us'
@@ -24,7 +24,7 @@ if __name__ == "__main__":
             filter_number=filter_number,
             asyncio_=True)
         picking.do_stock_pick()
-        picking.do_stock_pick_quantile(quantile=5)
+        #picking.do_stock_pick_quantile(quantile=5)
 
     # picking_data_load
     picking_dict = stock_picking.get_stock_picking_dict(pre_process=pre_process)

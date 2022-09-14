@@ -5,10 +5,10 @@ Created on Thu Sep  1 16:38:11 2022
 @author: doomoolmori
 """
 
-import polars as pl
+from data_process import pre_processing
+from data_process import data_read
+from backtest_process import calculate_weight
 import pandas as pd
-import os
-import pickle
 import numpy as np
 
 """
@@ -293,18 +293,338 @@ print("time :", time.time() - start)
 #### polars 데이터 합치는거 우째하노..\
 """
 
+
 ##########################
-from data_process import data_read
-import numpy as np
-import pandas as pd
-from backtest_process import calculate_weight
+
+# TODO 중복되는 함수들 많으나 우선은 편의를 위해 모두 사용
+class Calc:
+    @staticmethod
+    def calculate_i_PRICE(
+            quantity_arr: np.array,
+            price_arr: np.array
+    ) -> np.array:
+        return np.nansum(
+            quantity_arr * price_arr,
+            axis=1)
+
+    @staticmethod
+    def calculate_i_short_MA(
+            quantity_arr: np.array,
+            ma_price_arr: np.array
+    ) -> np.array:
+        return np.nansum(
+            quantity_arr * ma_price_arr,
+            axis=1)
+
+    @staticmethod
+    def calculate_holding_i_PRICE(
+            after_quantity_arr: np.array,
+            price_arr: np.array
+    ) -> np.array:
+        holding_i_PRICE = np.nansum(
+            after_quantity_arr * price_arr,
+            axis=1)
+        holding_i_PRICE[-1] = holding_i_PRICE[-2]
+        return holding_i_PRICE
+
+    @staticmethod
+    def calculate_holding_i_short_MA(
+            after_quantity_arr: np.array,
+            ma_price_arr: np.array
+    ) -> np.array:
+        holding_i_short_MA = np.nansum(
+            after_quantity_arr * ma_price_arr,
+            axis=1)
+        holding_i_short_MA[-1] = holding_i_short_MA[-2]
+        return holding_i_short_MA
+
+    @staticmethod
+    def calculate_i_amount(
+            series_arr: np.array
+    ) -> np.array:
+        return series_arr.copy()
+
+    @staticmethod
+    def calculate_holding_i_amount(
+            series_arr: np.array
+    ) -> np.array:
+        holding_i_amount = shift_minus(
+            arr=series_arr,
+            num=-1,
+            fill_value=np.nan)
+        holding_i_amount[-1] = holding_i_amount[-2]
+        return holding_i_amount
+
+    @staticmethod
+    def calculate_holing_i_EPS(
+            after_quantity: np.array,
+            eps_arr: np.array
+    ) -> np.array:
+        holding_i_EPS = np.nansum(
+            after_quantity * eps_arr,
+            axis=1)
+        holding_i_EPS[-1] = holding_i_EPS[-2]
+        return holding_i_EPS
+
+    @staticmethod
+    def calculate_holding_i_MA_EPS(
+            after_ma_quantity: np.array,
+            eps_arr: np.array
+    ) -> np.array:
+        holding_i_MA_EPS = np.nansum(
+            after_ma_quantity * eps_arr,
+            axis=1)
+        holding_i_MA_EPS[-1] = holding_i_MA_EPS[-2]
+        return holding_i_MA_EPS
+
+    @staticmethod
+    def calculate_holding_i_NOISE(
+            holding_i_PRICE: np.array,
+            holding_i_short_MA: np.array
+    ) -> np.array:
+        return holding_i_PRICE / holding_i_short_MA
+
+    @staticmethod
+    def calculate_holding_i_PER(
+            holding_i_PRICE: np.array,
+            holding_i_EPS: np.array
+    ) -> np.array:
+        return holding_i_PRICE / holding_i_EPS
+
+    @staticmethod
+    def calculate_holding_i_MA_PER(
+            holding_i_short_MA: np.array,
+            holding_i_EPS: np.array
+    ) -> np.array:
+        return holding_i_short_MA / holding_i_EPS
+
+    @staticmethod
+    def calculate_i_EPS(
+            quantity_arr: np.array,
+            eps_arr: np.array
+    ) -> np.array:
+        return np.nansum(
+            quantity_arr * eps_arr,
+            axis=1)
+
+    @staticmethod
+    def calculate_i_MA_EPS(
+            ma_quantity_arr: np.array,
+            eps_arr: np.array
+    ) -> np.array:
+        return np.nansum(
+            ma_quantity_arr * eps_arr,
+            axis=1)
+
+    @staticmethod
+    def calculate_i_NOISE(
+            i_PRICE: np.array,
+            i_short_MA: np.array
+    ) -> np.array:
+        return i_PRICE / i_short_MA
+
+    @staticmethod
+    def calculate_PER(
+            i_PRICE: np.array,
+            i_EPS: np.array
+    ) -> np.array:
+        return (i_PRICE / i_EPS)
+
+    @staticmethod
+    def calculate_MA_PER(
+            i_short_MA: np.array,
+            i_EPS: np.array
+    ) -> np.array:
+        return i_short_MA / i_EPS
+
+    @staticmethod
+    def calculate_EPS_shift(
+            i_EPS: np.array
+    ) -> np.array:
+        return shift_plus(
+            arr=i_EPS,
+            num=1,
+            fill_value=np.nan)
+
+    @staticmethod
+    def calculate_holding_NOISE_change(
+            holding_i_NOISE: np.array,
+            i_NOISE: np.array
+    ) -> np.array:
+        _shift = shift_plus(
+            arr=i_NOISE,
+            num=1,
+            fill_value=np.nan)
+        return holding_i_NOISE / _shift - 1
+
+    @staticmethod
+    def calculate_holding_EARNINGS_change(
+            holding_i_EPS: np.array,
+            EPS_shift: np.array
+    ) -> np.array:
+        return holding_i_EPS / EPS_shift - 1
+
+    @staticmethod
+    def calculate_holding_MA_EARNINGS_change(
+            holding_i_MA_EPS: np.array,
+            i_MA_EPS: np.array
+    ) -> np.array:
+        _shift = shift_plus(
+            arr=i_MA_EPS,
+            num=1,
+            fill_value=np.nan)
+        return holding_i_MA_EPS / _shift - 1
+
+    @staticmethod
+    def calculate_holding_PER_change(
+            holding_i_PER: np.array,
+            PER: np.array
+    ) -> np.array:
+        _shift = shift_plus(
+            arr=PER,
+            num=1,
+            fill_value=np.nan)
+        return holding_i_PER / _shift - 1
+
+    @staticmethod
+    def calculate_holding_MA_PER_change(
+            holding_i_MA_PER: np.array,
+            MA_PER: np.array
+    ) -> np.array:
+        _shift = shift_plus(
+            arr=MA_PER,
+            num=1,
+            fill_value=np.nan)
+        return holding_i_MA_PER / _shift - 1
+
+    @staticmethod
+    def calculate_rebalancing_EARNINGS_change(
+            i_EPS: np.array,
+            holding_i_EPS: np.array
+    ) -> np.array:
+        return i_EPS / holding_i_EPS - 1
+
+    @staticmethod
+    def calculate_rebalancing_MA_EARNINGS_change(
+            i_MA_EPS: np.array,
+            holding_i_EPS: np.array
+    ) -> np.array:
+        return i_MA_EPS / holding_i_EPS - 1
+
+    @staticmethod
+    def calculate_rebalancing_NOISE_change(
+            i_NOISE: np.array,
+            holding_i_NOISE: np.array
+    ) -> np.array:
+        return i_NOISE / holding_i_NOISE - 1
+
+    @staticmethod
+    def calculate_rebalancing_PER_change(
+            MA_PER: np.array,
+            holding_i_MA_PER: np.array
+    ) -> np.array:
+        return MA_PER / holding_i_MA_PER - 1
+
+    @staticmethod
+    def calculate_rebalancing_noise_change(
+            rebalancing_EARNINGS_change: np.array,
+            rebalancing_MA_EARNINGS_change: np.array
+    ) -> np.array:
+        return rebalancing_EARNINGS_change - \
+               rebalancing_MA_EARNINGS_change
 
 
-# univ_factor_df_i['Price/Earnings Ratio - Current'][univ_factor_df_i['Price/Earnings Ratio - Current'] < 0] = \
-# univ_factor_df_i['Price/Earnings Ratio - Current'].median()
+class NewSharpDecompose:
+    def __init__(self, pre_process):
+        print('start NewSharpDecompose')
+        self.pre_process = pre_process
+        self.default_setting_bulk_df()
+        self.default_setting_dict()
+        self.default_setting_price()
+        self.default_setting_ma_price()
+        self.default_setting_pe()
+        self.default_setting_pct()
+
+    def update_setting(self, stg_name: str = '0-(1, 0, 0, 0, 0, 0, 0, 0, 0, 0)'):
+        self.set_weight_arr(stg_name=stg_name)
+        self.set_series_arr(stg_name=stg_name)
+
+        self.get_eps_arr()
+        self.get_quantity_arr()
+        self.get_after_quantity_arr()
+        self.get_ma_quantity_arr()
+        self.get_after_ma_quantity_arr()
+        print('update_setting')
+
+    def get_eps_arr(self):
+        self.eps_arr = self.price_arr / self.adj_pe_arr
+
+    def get_quantity_arr(self):
+        self.quantity_arr = (self.sample_series.reshape(236, 1) * self.weight_arr) \
+                            / self.price_arr
+
+    def get_after_quantity_arr(self):
+        self.after_quantity_arr = self.quantity_arr * (1 + self.after_pct_arr)
+
+    def get_ma_quantity_arr(self):
+        self.ma_quantity_arr = (self.sample_series.reshape(236, 1) * self.weight_arr) \
+                               / self.ma_price_arr
+
+    def get_after_ma_quantity_arr(self):
+        self.after_ma_quantity_arr = self.ma_quantity_arr * (1 + self.after_pct_arr)
+
+    def default_setting_bulk_df(self):
+        self.bulk_df = data_read.read_csv_(
+            path=self.pre_process.path_dict['STRATEGY_STATS_PATH'],
+            name='bulk_backtest_m.csv')
+        self.bulk_df.set_index('date_', inplace=True)
+
+    def default_setting_dict(self):
+        self.dict_of_data = self.pre_process.dict_of_pandas
+
+    def default_setting_price(self):
+        self.price_df = self.pre_process.adj_ri
+        self.price_arr = self.price_df.to_numpy(dtype=np.float32)
+
+    def default_setting_ma_price(self):
+        self.ma_price_df = self.dict_of_data['RI_ma_20d']
+        self.ma_price_arr = self.ma_price_df.to_numpy(dtype=np.float32)
+
+    def default_setting_pe(self):
+        pe_df = self.dict_of_data['Price/Earnings Ratio - Current']
+        median_pe_arr = pe_df.median(1).to_numpy(dtype=np.float32)
+        pe_arr = pe_df.to_numpy(dtype=np.float32)
+        minus_pe_arr = (pe_arr < 0) * median_pe_arr.reshape((len(median_pe_arr), 1))
+        self.adj_pe_arr = pe_arr * (pe_arr > 0) + minus_pe_arr
+
+    def default_setting_pct(self):
+        self.after_pct_arr = self.price_df.pct_change().shift(-1).to_numpy()
+
+    def set_series_arr(self, stg_name: str):
+        sample_series = self.bulk_df[stg_name] * 100
+        self.sample_series = sample_series.to_numpy()
+        """
+        sample_series = (np.nansum(self.after_pct_arr * self.weight_arr, 1) + 1).cumprod() * 100
+        sample_series = shift_plus(sample_series, 1, np.nan)
+        sample_series[0] = 100
+        self.sample_series = sample_series
+        """
+
+    def set_weight_arr(self, stg_name: str):
+        picked_stock = data_read.read_pickle(
+            path=self.pre_process.path_dict['STRATEGY_WEIGHT_PATH'],
+            name=f'{stg_name}_picked.pickle')
+        self.weight_arr = calculate_weight.make_equal_weight_arr(
+            stock_pick=picked_stock,
+            number_of_columns=len(self.price_df.columns),
+            number_of_raws=len(self.price_df.index))
 
 
-def shift_plus(arr, num, fill_value):
+def shift_plus(
+        arr: np.array,
+        num: int,
+        fill_value: any
+) -> np.array:
     assert num > 0, print('num error')
     result = np.empty_like(arr)
     result[:num] = fill_value
@@ -312,7 +632,11 @@ def shift_plus(arr, num, fill_value):
     return result
 
 
-def shift_minus(arr, num, fill_value):
+def shift_minus(
+        arr: np.array,
+        num: int,
+        fill_value: any
+) -> np.array:
     assert num < 0, print('num error')
     result = np.empty_like(arr)
     result[num:] = fill_value
@@ -320,132 +644,149 @@ def shift_minus(arr, num, fill_value):
     return result
 
 
+def get_new_sharp_path(
+        garbage,
+        path: str
+) -> str:
+    if garbage == False:
+        new_sharp_path = f'{path}/strategy_new_sharp'
+    else:
+        new_sharp_path = f'{path}/strategy_new_sharp_garbage_{garbage}'
+    return new_sharp_path
 
-path = 'C:/Users/doomoolmori/factor_attribution_process'
-dict_of_data = data_read.read_pickle(
-    path='C:/Users/doomoolmori/factor_attribution_process/data/us',
-    name='us_dict_of_data.pickle')
+def get_new_sharp_data(
+    new_sharp
+) -> pd.DataFrame:
+    i_PRICE = Calc.calculate_i_PRICE(
+        quantity_arr=new_sharp.quantity_arr,
+        price_arr=new_sharp.price_arr)
+    i_short_MA = Calc.calculate_i_short_MA(
+        quantity_arr=new_sharp.quantity_arr,
+        ma_price_arr=new_sharp.ma_price_arr)
+    holding_i_PRICE = Calc.calculate_holding_i_PRICE(
+        after_quantity_arr=new_sharp.after_quantity_arr,
+        price_arr=new_sharp.price_arr)
+    holding_i_short_MA = Calc.calculate_holding_i_short_MA(
+        after_quantity_arr=new_sharp.after_quantity_arr,
+        ma_price_arr=new_sharp.ma_price_arr)
+    i_amount = Calc.calculate_i_amount(
+        series_arr=new_sharp.sample_series)
+    holding_i_amount = Calc.calculate_holding_i_amount(
+        series_arr=new_sharp.sample_series)
+    holding_i_EPS = Calc.calculate_holing_i_EPS(
+        after_quantity=new_sharp.after_quantity_arr,
+        eps_arr=new_sharp.eps_arr)
+    holding_i_MA_EPS = Calc.calculate_holding_i_MA_EPS(
+        after_ma_quantity=new_sharp.after_ma_quantity_arr,
+        eps_arr=new_sharp.eps_arr)
+    holding_i_NOISE = Calc.calculate_holding_i_NOISE(
+        holding_i_PRICE=holding_i_PRICE,
+        holding_i_short_MA=holding_i_short_MA)
+    holding_i_PER = Calc.calculate_holding_i_PER(
+        holding_i_PRICE=holding_i_PRICE,
+        holding_i_EPS=holding_i_EPS)
+    holding_i_MA_PER = Calc.calculate_holding_i_MA_PER(
+        holding_i_short_MA=holding_i_short_MA,
+        holding_i_EPS=holding_i_EPS)
+    i_EPS = Calc.calculate_i_EPS(
+        quantity_arr=new_sharp.quantity_arr,
+        eps_arr=new_sharp.eps_arr)
+    i_MA_EPS = Calc.calculate_i_MA_EPS(
+        ma_quantity_arr=new_sharp.ma_quantity_arr,
+        eps_arr=new_sharp.eps_arr)
+    i_NOISE = Calc.calculate_i_NOISE(
+        i_PRICE=i_PRICE,
+        i_short_MA=i_short_MA)
+    PER = Calc.calculate_PER(
+        i_PRICE=i_PRICE,
+        i_EPS=i_EPS)
+    MA_PER = Calc.calculate_MA_PER(
+        i_short_MA=i_short_MA,
+        i_EPS=i_EPS)
+    EPS_shift = Calc.calculate_EPS_shift(
+        i_EPS=i_EPS)
+    holding_NOISE_change = Calc.calculate_holding_NOISE_change(
+        holding_i_NOISE=holding_i_NOISE,
+        i_NOISE=i_NOISE)
+    holding_EARNINGS_change = Calc.calculate_holding_EARNINGS_change(
+        holding_i_EPS=holding_i_EPS,
+        EPS_shift=EPS_shift)
+    holding_MA_EARNINGS_change = Calc.calculate_holding_MA_EARNINGS_change(
+        holding_i_MA_EPS=holding_i_MA_EPS,
+        i_MA_EPS=i_MA_EPS)
+    holding_PER_change = Calc.calculate_holding_PER_change(
+        holding_i_PER=holding_i_PER,
+        PER=PER)
+    holding_MA_PER_change = Calc.calculate_holding_MA_PER_change(
+        holding_i_MA_PER=holding_i_MA_PER,
+        MA_PER=MA_PER)
+    rebalancing_EARNINGS_change = Calc.calculate_rebalancing_EARNINGS_change(
+        i_EPS=i_EPS,
+        holding_i_EPS=holding_i_EPS)
+    rebalancing_MA_EARNINGS_change = Calc.calculate_rebalancing_MA_EARNINGS_change(
+        i_MA_EPS=i_MA_EPS,
+        holding_i_EPS=holding_i_EPS)
+    rebalancing_NOISE_change = Calc.calculate_rebalancing_NOISE_change(
+        i_NOISE=i_NOISE,
+        holding_i_NOISE=holding_i_NOISE)
+    rebalancing_PER_change = Calc.calculate_rebalancing_PER_change(
+        MA_PER=MA_PER,
+        holding_i_MA_PER=holding_i_MA_PER)
+    rebalancing_noise_change = Calc.calculate_rebalancing_noise_change(
+        rebalancing_EARNINGS_change=rebalancing_EARNINGS_change,
+        rebalancing_MA_EARNINGS_change=rebalancing_MA_EARNINGS_change)
+    result_dict = {'i_amount':i_amount,
+                   'holding_i_amount':holding_i_amount,
+                   'holding_i_EPS':holding_i_EPS,
+                   'holding_i_MA_EPS':holding_i_MA_EPS,
+                   'holding_i_NOISE':holding_i_NOISE,
+                   'holding_i_PER':holding_i_PER,
+                   'holding_i_MA_PER':holding_i_MA_PER,
+                   'i_EPS':i_EPS,
+                   'i_MA_EPS':i_MA_EPS,
+                   'i_NOISE':i_NOISE,
+                   'PER':PER,
+                   'MA_PER':MA_PER,
+                   'EPS_shift':EPS_shift,
+                   'holding_NOISE_change':holding_NOISE_change,
+                   'holding_EARNINGS_change':holding_EARNINGS_change,
+                   'holding_MA_EARNINGS_change':holding_MA_EARNINGS_change,
+                   'holding_PER_change':holding_PER_change,
+                   'holding_MA_PER_change':holding_MA_PER_change,
+                   'rebalancing_EARNINGS_change':rebalancing_EARNINGS_change,
+                   'rebalancing_MA_EARNINGS_change':rebalancing_MA_EARNINGS_change,
+                   'rebalancing_NOISE_change':rebalancing_NOISE_change,
+                   'rebalancing_PER_change':rebalancing_PER_change,
+                   'rebalancing_noise_change':rebalancing_noise_change}
 
-price_df = dict_of_data['RI']
-# univ_factor_df = univ_factor_df[~univ_factor_df['short_MA'].is_null()]
-
-price_df = data_read.read_csv_(path=path + '/data/us',
-                               name='adj_ri.csv')
-price_df.set_index('date_', inplace=True)
-
-pe_df = dict_of_data['Price/Earnings Ratio - Current']
-
-ma_price_df = dict_of_data['RI_ma_20d']
-
-
-price_arr = price_df.to_numpy(dtype=np.float32)
-ma_price_arr = ma_price_df.to_numpy(dtype=np.float32)
-median_pe_arr = pe_df.median(1).to_numpy(dtype=np.float32)
-pe_arr = pe_df.to_numpy(dtype=np.float32)
-
-minus_pe_arr = (pe_arr < 0) * median_pe_arr.reshape((len(median_pe_arr), 1))
-adj_pe_arr = pe_arr * (pe_arr > 0) + minus_pe_arr
-eps_arr = price_arr / adj_pe_arr
-ma_eps_arr = ma_price_arr / adj_pe_arr
-
-pct = price_df.pct_change().shift(-1)
-
-stg_name = '0-(1, 0, 0, 0, 0, 0, 0, 0, 0, 0)'
-picked_stock = data_read.read_pickle(path=path + '/data/us/strategy_weight',
-                                     name=f'{stg_name}_picked.pickle')
-
-series_df = data_read.read_csv_(path=path + '/data/us/strategy_stats',
-                                name='bulk_backtest_m.csv')
-series_df.set_index('date_', inplace=True)
-sample_series = series_df[stg_name] * 100
-
-weight = calculate_weight.make_equal_weight_arr(
-    stock_pick=picked_stock,
-    number_of_columns=len(price_df.columns),
-    number_of_raws=len(price_df.index))
-
-weight_df = pd.DataFrame(weight,
-                         columns=price_df.columns,
-                         index=price_df.index)
-
-sample_series = ((price_df.pct_change().shift(-1) * weight_df).sum(1) + 1).cumprod() * 100
-sample_series = sample_series.shift(1)
-sample_series[0] = 100
-sample_series = sample_series.to_numpy()
-after_pct = price_df.pct_change().shift(-1).to_numpy()
-
-quantity = (sample_series.reshape(236, 1) * weight_df.to_numpy()) / price_arr
-after_quantity = quantity * (1 + after_pct)
-
-ma_quantity = (sample_series.reshape(236, 1) * weight_df.to_numpy()) / ma_price_arr
-after_ma_quantity = ma_quantity * (1 + after_pct)
-
-
-i_EPS = np.nansum(quantity[:, :] * eps_arr[:, :], 1)
-i_amount = sample_series.copy()
-holding_i_amount = shift_minus(sample_series, -1, np.nan)
-# NumPy 버전 <= 1.9.0에서는 모든 NaN이거나 비어있는 슬라이스에 대해 Nan이 반환됩니다. 이후 버전에서는 0이 반환됩니다.
-holding_i_EPS = np.nansum(after_quantity[:, :] * eps_arr[:, :], 1)
-holding_i_EPS[-1] = holding_i_EPS[-2]
-
-i_MA_EPS = np.nansum(ma_quantity[:, :] * eps_arr[:, :], 1)
-holding_i_MA_EPS = np.nansum(after_ma_quantity[:, :] * eps_arr[:, :], 1)
-holding_i_MA_EPS[-1] = holding_i_MA_EPS[-2]
-
-i_short_MA = np.nansum(quantity * ma_price_arr, 1)
-MA_PER = i_short_MA / i_EPS
-
-holding_i_short_MA = np.nansum(after_quantity * ma_price_arr, 1)
-holding_i_short_MA[-1] = holding_i_short_MA[-2]
-holding_i_MA_PER = holding_i_short_MA/holding_i_EPS
-holding_i_MA_PER
-
-holding_i_PRICE = np.nansum(after_quantity * price_arr, 1)
-holding_i_PRICE[-1] = holding_i_PRICE[-2]
-holding_i_PER = (holding_i_PRICE / holding_i_EPS)
-
-i_PRICE = np.nansum(quantity * price_arr, 1)
-PER = (i_PRICE / i_EPS)
-
-
-i_short_MA = np.nansum(quantity * ma_price_arr, 1)
-holding_i_short_MA = np.nansum(after_quantity * ma_price_arr, 1)
-holding_i_short_MA[-1] = holding_i_short_MA[-2]
-i_NOISE = i_PRICE / i_short_MA
-holding_i_NOISE = holding_i_PRICE / holding_i_short_MA
-
-EPS_shift = shift_plus(i_EPS, 1, np.nan)
-
-holding_NOISE_change = holding_i_NOISE / shift_plus(i_NOISE, 1, np.nan) - 1
-holding_EARNINGS_change = holding_i_EPS / EPS_shift - 1
-
-holding_PER_change = holding_i_PER / shift_plus(PER, 1, np.nan) - 1
-
-rebalancing_EARNINGS_change = i_EPS / holding_i_EPS - 1
-rebalancing_NOISE_change = i_NOISE / holding_i_NOISE - 1
-
-
-
-holding_MA_EARNINGS_change = holding_i_MA_EPS / shift_plus(i_MA_EPS, 1, np.nan) - 1
-
-MA_PER = i_short_MA / i_EPS
-holding_MA_PER_change = holding_i_MA_PER / shift_plus(MA_PER, 1, np.nan) - 1
-rebalancing_MA_EARNINGS_change = i_MA_EPS / holding_i_EPS - 1
-rebalancing_PER_change = MA_PER / holding_i_MA_PER - 1
-rebalancing_noise_change = rebalancing_EARNINGS_change - rebalancing_MA_EARNINGS_change
-
-##
-decomposition_ts_df.loc[decomposition_ts_df['i_EPS'] < 0, info_cols] = np.nan
-decomposition_ts_df.loc[decomposition_ts_df['holding_i_EPS'] < 0, info_cols] = np.nan
-decomposition_ts_df = decomposition_ts_df.ffill()
-
-
-## 차이나는 것은 ADJ_RI 와 RI 라 추정 아래 두 코드는 같으나 RI는 다르다는 것을 확인.
-# i_holdings['Price/Earnings Ratio - Current'].sum()
-# np.nansum((quan_df.to_numpy() * adj_pe_arr)[0, :])
+    result_df = pd.DataFrame(
+        result_dict,
+        index=new_sharp.price_df.index)
+    result_df.loc[result_df['i_EPS'] < 0, result_df.columns] = np.nan
+    result_df.loc[result_df['holding_i_EPS'] < 0, result_df.columns] = np.nan
+    return result_df.ffill()
 
 
-class NewSharpDecompose:
+if __name__ == "__main__":
+    rebal = 'm'  # or 'm'
+    cost = 0.003
+    n_top = 20
+    universe = 'us'
+    pre_process = pre_processing.PreProcessing(universe=universe, n_top=n_top)
 
-    def __init__(self):
-        print('start NewSharpDecompose')
+    garbage = False
+
+    new_sharp_path = get_new_sharp_path(
+        garbage=garbage,
+        path=pre_process.path_dict["DATA_PATH"])
+    data_read.make_path(new_sharp_path)
+    new_sharp = NewSharpDecompose(pre_process)
+    bulk_df = new_sharp.bulk_df
+    for stg_name in bulk_df.columns[:10]:
+        print(stg_name)
+        new_sharp.update_setting(stg_name=stg_name)
+        new_sharp_df = get_new_sharp_data(new_sharp=new_sharp)
+        data_read.save_to_pickle(
+            any_=new_sharp_df,
+            path=new_sharp_path,
+            name=f'{stg_name}.pickle')
