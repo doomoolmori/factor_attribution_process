@@ -55,6 +55,48 @@ def get_bulk_data(garbage, folder_name):
 def scatter_plot(x, y):
     return plt.scatter(x, y, c='blue')
 
+class Regression:
+    def __init__(self):
+        print('ready')
+
+    def init_setting(self):
+        self.in_alpha_list = []
+        self.out_alpha_list = []
+
+    def in_x_y(self, in_x, in_y):
+        self.in_x = in_x
+        self.in_y = in_y
+
+    def out_x_y(self, out_x, out_y):
+        self.out_x = out_x
+        self.out_y = out_y
+
+    def in_fitting(self):
+        self.in_model = sm.OLS(self.in_y,
+                               sm.add_constant(self.in_x)).fit()
+
+    def out_fitting(self):
+        self.out_model = sm.OLS(self.out_y,
+                                sm.add_constant(self.out_x)).fit()
+
+    def append_in_alpha(self):
+        self.in_alpha_list.append(
+            self.in_model.params[0, :])
+        self.out_alpha_list.append(
+            self.out_model.params[0, :])
+
+def get_in_out_idx(idx, date_dict, key) -> dict:
+    in_idx = serial_stats.get_sample_boolean_index(
+        index=pd.to_datetime(idx),
+        start_date=date_dict[key]['in_start'],
+        end_date=date_dict[key]['in_end'])
+    out_idx = serial_stats.get_sample_boolean_index(
+        index=pd.to_datetime(idx),
+        start_date=date_dict[key]['out_start'],
+        end_date=date_dict[key]['out_end'])
+    return {'in_idx': in_idx,
+            'out_idx': out_idx}
+
 if __name__ == "__main__":
     import make_new_sharp as ns
     rebal = 'm'  # or 'm'
@@ -88,6 +130,8 @@ if __name__ == "__main__":
         Y = (bulk_pct - ff3_data['RF'].values.reshape((len(bulk_pct), 1))).values
         X = (ff3_data[['Mkt-RF', 'SMB', 'HML']]).values
 
+        idx = bulk_pct.index
+
         date_dict = serial_stats.date_information_dict(
             index=pd.to_datetime(bulk_pct.index),
             in_sample_year=10,
@@ -113,6 +157,8 @@ if __name__ == "__main__":
                 index=pd.to_datetime(bulk_pct.index),
                 start_date=date_dict[key]['out_start'],
                 end_date=date_dict[key]['out_end'])
+            in_out_dict = get_in_out_idx(idx, date_dict, key)
+
             ff_model_in = sm.OLS(Y[in_idx, :], sm.add_constant(X[in_idx, :])).fit()
             alpha_list.append(ff_model_in.params[0, :])
             return_list.append(bulk_pct.values[in_idx, :].mean(0))
@@ -123,6 +169,7 @@ if __name__ == "__main__":
             return_list_out.append(bulk_pct.values[out_idx, :][1:].mean(0))
             sd_list_out.append(bulk_pct.values[out_idx, :][1:].std(0))
 
+            """
             temp_sharp = []
             temp_sharp_smooth = []
             temp_new_sharp = []
@@ -139,6 +186,7 @@ if __name__ == "__main__":
             sharp_list.append(temp_sharp)
             sharp_smooth_list.append(temp_sharp_smooth)
             new_sharp_list.append(temp_new_sharp)
+            """
         total_alpha_list.append(alpha_list)
         total_return_list.append(return_list)
         total_sd_list.append(sd_list)

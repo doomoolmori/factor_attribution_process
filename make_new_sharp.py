@@ -826,7 +826,7 @@ if __name__ == "__main__":
                     11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
                     21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
     garbage = False
-    for garbage in garbage_list[:1]:
+    for garbage in garbage_list[:]:
         pre_process = pre_processing.PreProcessing(universe=universe, n_top=n_top, garbage=garbage)
         new_sharp_path = get_new_sharp_path(
             garbage=garbage,
@@ -834,7 +834,7 @@ if __name__ == "__main__":
         data_read.make_path(new_sharp_path)
         new_sharp = NewSharpDecompose(pre_process)
         bulk_df = new_sharp.bulk_df
-        for stg_name in bulk_df.columns[:1]:
+        for stg_name in bulk_df.columns[:]:
             picked_stock = data_read.read_pickle(
                 path=pre_process.path_dict['STRATEGY_WEIGHT_PATH'],
                 name=f'{stg_name}_picked.pickle')
@@ -856,37 +856,38 @@ if __name__ == "__main__":
     bm_series = bm.get_bm_series(cost=cost, rebal=rebal)
 
     bm_weight = bm.get_bm_weight()
-    data_read.save_to_pickle(bm_weight, path='C:/Users/doomoolmori/factor_attribution_process', name='bm.pickle')
     bm_series = bm.get_series(bm_weight, 0.003, 'm') * 100
     new_sharp.update_setting(weight_arr=bm_weight,
                              sample_series=bm_series.to_numpy())
     bm_sharp_df = get_new_sharp_data(new_sharp=new_sharp)
-    bm_sharp_df.to_csv('bm.csv')
-    calculation_sharp(bm_sharp_df.dropna())
+    bm_sharp_df.to_csv('bm_new_sharp.csv')
 
     value_weight = bm.get_value_weight()
     value_series = bm.get_series(value_weight, 0.003, 'm') * 100
     new_sharp.update_setting(weight_arr=value_weight,
                              sample_series=value_series.to_numpy())
     value_sharp_df = get_new_sharp_data(new_sharp=new_sharp)
+    value_sharp_df.to_csv('value_new_sharp.csv')
 
     growth_weight = bm.get_growth_weight()
     growth_series = bm.get_series(growth_weight, 0.003, 'm') * 100
     new_sharp.update_setting(weight_arr=growth_weight,
                              sample_series=growth_series.to_numpy())
     growth_sharp_df = get_new_sharp_data(new_sharp=new_sharp)
+    growth_sharp_df.to_csv('growth_new_sharp.csv')
 
     small_weight = bm.get_small_weight()
     small_series = bm.get_series(small_weight, 0.003, 'm') * 100
     new_sharp.update_setting(weight_arr=small_weight,
                              sample_series=small_series.to_numpy())
     small_sharp_df = get_new_sharp_data(new_sharp=new_sharp)
+    small_sharp_df.to_csv('small_new_sharp.csv')
 
     large_weight = bm.get_large_weight()
     large_series = bm.get_series(large_weight, 0.003, 'm') * 100
     new_sharp.update_setting(weight_arr=large_weight,
                              sample_series=large_series.to_numpy())
     large_sharp_df = get_new_sharp_data(new_sharp=new_sharp)
+    large_sharp_df.to_csv('large_new_sharp.csv')
 
     #new_sharp_df.to_csv('ff.csv')
-    calculation_sharp(new_sharp_df)
