@@ -10,6 +10,7 @@ from data_process import data_read
 from backtest_process import calculate_weight
 import pandas as pd
 import numpy as np
+from backtest_process import make_bm
 
 """
 def read_raw_data_df(path: str, name: str) -> pl.DataFrame:
@@ -353,7 +354,7 @@ class Calc:
             num=-1,
             fill_value=np.nan)
         holding_i_amount[-1] = holding_i_amount[-2]
-        return holding_i_amount
+        return series_arr.copy()
 
     @staticmethod
     def calculate_holing_i_EPS(
@@ -545,9 +546,9 @@ class NewSharpDecompose:
         self.default_setting_pe()
         self.default_setting_pct()
 
-    def update_setting(self, stg_name: str = '0-(1, 0, 0, 0, 0, 0, 0, 0, 0, 0)'):
-        self.set_weight_arr(stg_name=stg_name)
-        self.set_series_arr(stg_name=stg_name)
+    def update_setting(self, weight_arr, sample_series):
+        self.set_weight_arr(weight_arr=weight_arr)
+        self.set_series_arr(sample_series=sample_series)
 
         self.get_eps_arr()
         self.get_quantity_arr()
@@ -560,18 +561,28 @@ class NewSharpDecompose:
         self.eps_arr = self.price_arr / self.adj_pe_arr
 
     def get_quantity_arr(self):
-        self.quantity_arr = (self.sample_series.reshape(236, 1) * self.weight_arr) \
+        self.quantity_arr = (self.sample_series.reshape(235, 1) *
+                             self.weight_arr) \
                             / self.price_arr
 
     def get_after_quantity_arr(self):
-        self.after_quantity_arr = self.quantity_arr * (1 + self.after_pct_arr)
+        self.after_quantity_arr = (self.sample_series.reshape(235, 1) *
+                                   shift_plus(self.weight_arr, 1, np.nan) *
+                                   (1 + shift_plus(self.after_pct_arr, 1, np.nan))) \
+                                  / self.price_arr
+        # self.after_quantity_arr = self.quantity_arr * (1 + self.after_pct_arr)
 
     def get_ma_quantity_arr(self):
-        self.ma_quantity_arr = (self.sample_series.reshape(236, 1) * self.weight_arr) \
+        self.ma_quantity_arr = (self.sample_series.reshape(235, 1) *
+                                self.weight_arr) \
                                / self.ma_price_arr
 
     def get_after_ma_quantity_arr(self):
-        self.after_ma_quantity_arr = self.ma_quantity_arr * (1 + self.after_pct_arr)
+        self.after_ma_quantity_arr = (self.sample_series.reshape(235, 1) *
+                                      shift_plus(self.weight_arr, 1, np.nan) *
+                                      (1 + shift_plus(self.after_pct_arr, 1, np.nan))) \
+                                     / self.ma_price_arr
+        # self.after_ma_quantity_arr = self.ma_quantity_arr * (1 + self.after_pct_arr)
 
     def default_setting_bulk_df(self):
         self.bulk_df = data_read.read_csv_(
@@ -600,24 +611,18 @@ class NewSharpDecompose:
     def default_setting_pct(self):
         self.after_pct_arr = self.price_df.pct_change().shift(-1).to_numpy()
 
-    def set_series_arr(self, stg_name: str):
+    def set_series_arr(self, sample_series):
+        """
         sample_series = self.bulk_df[stg_name] * 100
         self.sample_series = sample_series.to_numpy()
         """
-        sample_series = (np.nansum(self.after_pct_arr * self.weight_arr, 1) + 1).cumprod() * 100
-        sample_series = shift_plus(sample_series, 1, np.nan)
-        sample_series[0] = 100
+        #sample_series = (np.nansum(self.after_pct_arr * self.weight_arr, 1) + 1).cumprod() * 100
+        #sample_series = shift_plus(sample_series, 1, np.nan)
+        #sample_series[0] = 100
         self.sample_series = sample_series
-        """
 
-    def set_weight_arr(self, stg_name: str):
-        picked_stock = data_read.read_pickle(
-            path=self.pre_process.path_dict['STRATEGY_WEIGHT_PATH'],
-            name=f'{stg_name}_picked.pickle')
-        self.weight_arr = calculate_weight.make_equal_weight_arr(
-            stock_pick=picked_stock,
-            number_of_columns=len(self.price_df.columns),
-            number_of_raws=len(self.price_df.index))
+    def set_weight_arr(self, weight_arr):
+        self.weight_arr = weight_arr
 
 
 def shift_plus(
@@ -654,8 +659,9 @@ def get_new_sharp_path(
         new_sharp_path = f'{path}/strategy_new_sharp_garbage_{garbage}'
     return new_sharp_path
 
+
 def get_new_sharp_data(
-    new_sharp
+        new_sharp
 ) -> pd.DataFrame:
     i_PRICE = Calc.calculate_i_PRICE(
         quantity_arr=new_sharp.quantity_arr,
@@ -735,29 +741,29 @@ def get_new_sharp_data(
     rebalancing_noise_change = Calc.calculate_rebalancing_noise_change(
         rebalancing_EARNINGS_change=rebalancing_EARNINGS_change,
         rebalancing_MA_EARNINGS_change=rebalancing_MA_EARNINGS_change)
-    result_dict = {'i_amount':i_amount,
-                   'holding_i_amount':holding_i_amount,
-                   'holding_i_EPS':holding_i_EPS,
-                   'holding_i_MA_EPS':holding_i_MA_EPS,
-                   'holding_i_NOISE':holding_i_NOISE,
-                   'holding_i_PER':holding_i_PER,
-                   'holding_i_MA_PER':holding_i_MA_PER,
-                   'i_EPS':i_EPS,
-                   'i_MA_EPS':i_MA_EPS,
-                   'i_NOISE':i_NOISE,
-                   'PER':PER,
-                   'MA_PER':MA_PER,
-                   'EPS_shift':EPS_shift,
-                   'holding_NOISE_change':holding_NOISE_change,
-                   'holding_EARNINGS_change':holding_EARNINGS_change,
-                   'holding_MA_EARNINGS_change':holding_MA_EARNINGS_change,
-                   'holding_PER_change':holding_PER_change,
-                   'holding_MA_PER_change':holding_MA_PER_change,
-                   'rebalancing_EARNINGS_change':rebalancing_EARNINGS_change,
-                   'rebalancing_MA_EARNINGS_change':rebalancing_MA_EARNINGS_change,
-                   'rebalancing_NOISE_change':rebalancing_NOISE_change,
-                   'rebalancing_PER_change':rebalancing_PER_change,
-                   'rebalancing_noise_change':rebalancing_noise_change}
+    result_dict = {'i_amount': i_amount,
+                   'holding_i_amount': holding_i_amount,
+                   'holding_i_EPS': holding_i_EPS,
+                   'holding_i_MA_EPS': holding_i_MA_EPS,
+                   'holding_i_NOISE': holding_i_NOISE,
+                   'holding_i_PER': holding_i_PER,
+                   'holding_i_MA_PER': holding_i_MA_PER,
+                   'i_EPS': i_EPS,
+                   'i_MA_EPS': i_MA_EPS,
+                   'i_NOISE': i_NOISE,
+                   'PER': PER,
+                   'MA_PER': MA_PER,
+                   'EPS_shift': EPS_shift,
+                   'holding_NOISE_change': holding_NOISE_change,
+                   'holding_EARNINGS_change': holding_EARNINGS_change,
+                   'holding_MA_EARNINGS_change': holding_MA_EARNINGS_change,
+                   'holding_PER_change': holding_PER_change,
+                   'holding_MA_PER_change': holding_MA_PER_change,
+                   'rebalancing_EARNINGS_change': rebalancing_EARNINGS_change,
+                   'rebalancing_MA_EARNINGS_change': rebalancing_MA_EARNINGS_change,
+                   'rebalancing_NOISE_change': rebalancing_NOISE_change,
+                   'rebalancing_PER_change': rebalancing_PER_change,
+                   'rebalancing_noise_change': rebalancing_noise_change}
 
     result_df = pd.DataFrame(
         result_dict,
@@ -767,26 +773,120 @@ def get_new_sharp_data(
     return result_df.ffill()
 
 
+def calculation_sharp(
+        new_sharp_df: pd.DataFrame,
+        rebal: str = 'm'
+) -> dict:
+    new_sharp_df =new_sharp_df.dropna()
+    holding_EPS_change_sd = np.log(new_sharp_df['holding_EARNINGS_change'] + 1).std()
+    rebalancing_EPS_change_sd = np.log(new_sharp_df['rebalancing_EARNINGS_change'] + 1).std()
+    rebalancing_MA_EPS_change_sd = np.log(new_sharp_df['rebalancing_MA_EARNINGS_change'] + 1).std()
+    rebalancing_NOISE_change_sd = np.log(new_sharp_df['rebalancing_noise_change'] + 1).std()
+
+    if rebal == 'm':
+        freq_scale = 12
+    elif rebal == 'q':
+        freq_scale = 4
+    n_freq = len(new_sharp_df) - 1
+
+    annual_unrebalanced_PE_multipleExpansion_total_log = np.log(
+        new_sharp_df['PER'].iloc[-1] / new_sharp_df['PER'].iloc[0]) / n_freq * freq_scale
+    annual_holding_EPS_growth_log = np.log(
+        (new_sharp_df['holding_EARNINGS_change'] + 1).prod()) / n_freq * freq_scale
+    annual_rebalancing_EPS_growth_log = np.log(
+        (new_sharp_df['rebalancing_EARNINGS_change'] + 1).prod()) / n_freq * freq_scale
+    annual_rebalancing_MA_EPS_growth_log = np.log(
+        (new_sharp_df['rebalancing_MA_EARNINGS_change'] + 1).prod()) / n_freq * freq_scale
+
+    true_sharpe = (annual_holding_EPS_growth_log +
+                   annual_rebalancing_EPS_growth_log) / \
+                  (holding_EPS_change_sd +
+                   rebalancing_EPS_change_sd)
+    true_sharpe_smoothed = (annual_holding_EPS_growth_log +
+                            annual_rebalancing_MA_EPS_growth_log) / \
+                           (holding_EPS_change_sd +
+                            rebalancing_MA_EPS_change_sd)
+    new_sharpe = (annual_holding_EPS_growth_log +
+                  annual_rebalancing_MA_EPS_growth_log +
+                  annual_unrebalanced_PE_multipleExpansion_total_log) / \
+                 (holding_EPS_change_sd +
+                  rebalancing_NOISE_change_sd)
+    return {'true_sharpe': true_sharpe,
+            'true_sharpe_smoothed': true_sharpe_smoothed,
+            'new_sharpe': new_sharpe}
+
+
 if __name__ == "__main__":
     rebal = 'm'  # or 'm'
     cost = 0.003
     n_top = 20
     universe = 'us'
-    pre_process = pre_processing.PreProcessing(universe=universe, n_top=n_top)
 
+    garbage_list = [False, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+                    11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+                    21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
     garbage = False
+    for garbage in garbage_list[:1]:
+        pre_process = pre_processing.PreProcessing(universe=universe, n_top=n_top, garbage=garbage)
+        new_sharp_path = get_new_sharp_path(
+            garbage=garbage,
+            path=pre_process.path_dict["DATA_PATH"])
+        data_read.make_path(new_sharp_path)
+        new_sharp = NewSharpDecompose(pre_process)
+        bulk_df = new_sharp.bulk_df
+        for stg_name in bulk_df.columns[:1]:
+            picked_stock = data_read.read_pickle(
+                path=pre_process.path_dict['STRATEGY_WEIGHT_PATH'],
+                name=f'{stg_name}_picked.pickle')
+            weight_arr = calculate_weight.make_equal_weight_arr(
+                stock_pick=picked_stock,
+                number_of_columns=len(pre_process.adj_ri.columns),
+                number_of_raws=len(pre_process.adj_ri.index))
+            sample_series = bulk_df[stg_name] * 100
+            sample_series = sample_series.to_numpy()
+            print(stg_name)
+            new_sharp.update_setting(weight_arr=weight_arr, sample_series=sample_series)
+            new_sharp_df = get_new_sharp_data(new_sharp=new_sharp)
+            data_read.save_to_pickle(
+                any_=new_sharp_df,
+                path=new_sharp_path,
+                name=f'{stg_name}.pickle')
 
-    new_sharp_path = get_new_sharp_path(
-        garbage=garbage,
-        path=pre_process.path_dict["DATA_PATH"])
-    data_read.make_path(new_sharp_path)
-    new_sharp = NewSharpDecompose(pre_process)
-    bulk_df = new_sharp.bulk_df
-    for stg_name in bulk_df.columns[:10]:
-        print(stg_name)
-        new_sharp.update_setting(stg_name=stg_name)
-        new_sharp_df = get_new_sharp_data(new_sharp=new_sharp)
-        data_read.save_to_pickle(
-            any_=new_sharp_df,
-            path=new_sharp_path,
-            name=f'{stg_name}.pickle')
+    bm = make_bm.BM(pre_process)
+    bm_series = bm.get_bm_series(cost=cost, rebal=rebal)
+
+    bm_weight = bm.get_bm_weight()
+    data_read.save_to_pickle(bm_weight, path='C:/Users/doomoolmori/factor_attribution_process', name='bm.pickle')
+    bm_series = bm.get_series(bm_weight, 0.003, 'm') * 100
+    new_sharp.update_setting(weight_arr=bm_weight,
+                             sample_series=bm_series.to_numpy())
+    bm_sharp_df = get_new_sharp_data(new_sharp=new_sharp)
+    bm_sharp_df.to_csv('bm.csv')
+    calculation_sharp(bm_sharp_df.dropna())
+
+    value_weight = bm.get_value_weight()
+    value_series = bm.get_series(value_weight, 0.003, 'm') * 100
+    new_sharp.update_setting(weight_arr=value_weight,
+                             sample_series=value_series.to_numpy())
+    value_sharp_df = get_new_sharp_data(new_sharp=new_sharp)
+
+    growth_weight = bm.get_growth_weight()
+    growth_series = bm.get_series(growth_weight, 0.003, 'm') * 100
+    new_sharp.update_setting(weight_arr=growth_weight,
+                             sample_series=growth_series.to_numpy())
+    growth_sharp_df = get_new_sharp_data(new_sharp=new_sharp)
+
+    small_weight = bm.get_small_weight()
+    small_series = bm.get_series(small_weight, 0.003, 'm') * 100
+    new_sharp.update_setting(weight_arr=small_weight,
+                             sample_series=small_series.to_numpy())
+    small_sharp_df = get_new_sharp_data(new_sharp=new_sharp)
+
+    large_weight = bm.get_large_weight()
+    large_series = bm.get_series(large_weight, 0.003, 'm') * 100
+    new_sharp.update_setting(weight_arr=large_weight,
+                             sample_series=large_series.to_numpy())
+    large_sharp_df = get_new_sharp_data(new_sharp=new_sharp)
+
+    #new_sharp_df.to_csv('ff.csv')
+    calculation_sharp(new_sharp_df)
