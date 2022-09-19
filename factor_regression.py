@@ -5,6 +5,7 @@ from backtest_process import serial_stats
 import numpy as np
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
+import os
 
 us_garbage_list = [False, 1, 2, 3, 4, 5, 6, 7, 8, 9,
                    11, 13, 14, 15, 16, 17, 18, 20,
@@ -28,7 +29,7 @@ def get_ff3_data(rebal: str) -> pd.DataFrame:
 
 
 def get_bulk_data(garbage, folder_name):
-    path = 'C:\\Users\\doomoolmori\\factor_attribution_process/data/'
+    path = 'C:/Users/doomoolmori/factor_attribution_process/data/'
     path = path + folder_name + f'/strategy_stats'
     if garbage != False:
         path = path + f'_garbage_{garbage}'
@@ -50,6 +51,29 @@ def get_bulk_data(garbage, folder_name):
         rebal=rebal)
     """
     return bulk_backtest_df
+
+def get_bulk_sharp_dict(universe, garbage):
+    path = f'C:/Users/doomoolmori/factor_attribution_process/data/{universe}/strategy_new_sharp'
+    if garbage != False:
+        path = path + f'_garbage_{garbage}'
+    file_list = os.listdir(path)
+    fundamental_list = []
+    multiple_list = []
+    for file_name in file_list:
+        print(file_name)
+        new_sharp = data_read.read_pickle(
+            path=path,
+            name=file_name).copy()
+        fundamental_list.append(new_sharp['holding_EARNINGS_change'])
+        multiple_list.append(new_sharp['rebalancing_EARNINGS_change'])
+    fundamental_df = pd.concat(fundamental_list, 1)
+    multiple_df = pd.concat(multiple_list, 1)
+    fundamental_df.iloc[0, :] = fundamental_df.iloc[1, :]
+    multiple_df.iloc[0, :] = multiple_df.iloc[1, :]
+    fundamental_df.columns = file_list
+    multiple_df.columns = file_list
+    return {'fundamental_df':fundamental_df, 'multiple_df':multiple_df}
+
 
 
 def scatter_plot(x, y):
@@ -85,6 +109,8 @@ class Regression:
         self.out_alpha_list.append(
             self.out_model.params[0, :])
 
+
+
 def get_in_out_idx(idx, date_dict, key) -> dict:
     in_idx = serial_stats.get_sample_boolean_index(
         index=pd.to_datetime(idx),
@@ -96,6 +122,15 @@ def get_in_out_idx(idx, date_dict, key) -> dict:
         end_date=date_dict[key]['out_end'])
     return {'in_idx': in_idx,
             'out_idx': out_idx}
+
+def get_new_sharp(path, name):
+    new_sharp_df = data_read.read_csv_(
+        path=path,
+        name=name)
+    new_sharp_df.set_index('date_', inplace=True)
+    new_sharp_df.iloc[0, 2:] = new_sharp_df.iloc[1, 2:]
+    new_sharp_df.iloc[0, 2:] = new_sharp_df.iloc[1, 2:]
+    return new_sharp_df
 
 if __name__ == "__main__":
     import make_new_sharp as ns
@@ -110,7 +145,7 @@ if __name__ == "__main__":
         garbage_list = korea_garbage_list
 
     ff3_monthly = get_ff3_data(rebal=rebal)
-
+    """
     total_alpha_list = []
     total_return_list = []
     total_sd_list = []
@@ -122,20 +157,72 @@ if __name__ == "__main__":
     total_sharp_list = []
     total_sharp_smooth_list = []
     total_new_sharp_list = []
+    """
+    'holding_EARNINGS_change'
+    'rebalancing_EARNINGS_change'
+
+    bm = get_new_sharp(path='C:/Users/doomoolmori/factor_attribution_process', name='bm_new_sharp.csv')
+    growth = get_new_sharp(path='C:/Users/doomoolmori/factor_attribution_process', name='growth_new_sharp.csv')
+    value = get_new_sharp(path='C:/Users/doomoolmori/factor_attribution_process', name='value_new_sharp.csv')
+    small = get_new_sharp(path='C:/Users/doomoolmori/factor_attribution_process', name='small_new_sharp.csv')
+    big = get_new_sharp(path='C:/Users/doomoolmori/factor_attribution_process', name='large_new_sharp.csv')
+
+    bm_fundamental = bm['holding_EARNINGS_change']
+    bm_multiple = bm['holding_EARNINGS_change']
+
+    growth_fundamental = growth['holding_EARNINGS_change']
+    growth_multiple = growth['holding_EARNINGS_change']
+
+    value_fundamental = value['holding_EARNINGS_change']
+    value_multiple = value['holding_EARNINGS_change']
+
+    small_fundamental = small['holding_EARNINGS_change']
+    small_multiple = small['holding_EARNINGS_change']
+
+    big_fundamental = big['holding_EARNINGS_change']
+    big_multiple = big['holding_EARNINGS_change']
+
+    risk_free_arr = ff3_monthly.loc[list(bm.index)]['RF'].to_numpy()
+    fundamental_equity_premium = bm_fundamental - risk_free_arr
+    multiple_equity_premium = bm_multiple - risk_free_arr
+
+    fundamental_smb = small_fundamental - big_fundamental
+    multiple_smb = small_multiple - big_multiple
+
+    fundamental_hml = value_fundamental - growth_fundamental
+    multiple_hml = value_multiple - growth_multiple
+
+    total_f_alpha_in = []
+    total_m_alpha_in = []
+
+    total_f_alpha_out = []
+    total_m_alpha_out = []
     for garbage in garbage_list[:]:
         print(garbage)
-        bulk_backtest_df = get_bulk_data(garbage=garbage, folder_name=f'{universe}')
-        bulk_pct = bulk_backtest_df.iloc[:, :].pct_change().dropna()
-        ff3_data = ff3_monthly.loc[list(bulk_pct.index)]
-        Y = (bulk_pct - ff3_data['RF'].values.reshape((len(bulk_pct), 1))).values
-        X = (ff3_data[['Mkt-RF', 'SMB', 'HML']]).values
+        # bulk_backtest_df = get_bulk_data(garbage=garbage, folder_name=f'{universe}')
+        # bulk_pct = bulk_backtest_df.iloc[:, :].pct_change().dropna()
 
-        idx = bulk_pct.index
+        fundamental_regression = Regression()
+        fundamental_regression.init_setting()
+        multiple_regression = Regression()
+        multiple_regression.init_setting()
+
+        temp_ = get_bulk_sharp_dict(universe, garbage)
+        fundamental_df = temp_['fundamental_df']
+        multiple_df = temp_['multiple_df']
+        idx = fundamental_df.index
+
+        fundamental_Y = (fundamental_df - risk_free_arr.reshape((len(fundamental_df), 1))).values
+        fundamental_X = pd.concat([fundamental_equity_premium, fundamental_smb, fundamental_hml], 1).values
+
+        multiple_Y = (multiple_df - risk_free_arr.reshape((len(multiple_df), 1))).values
+        multiple_X = pd.concat([multiple_equity_premium, multiple_smb, multiple_hml], 1).values
 
         date_dict = serial_stats.date_information_dict(
-            index=pd.to_datetime(bulk_pct.index),
+            index=pd.to_datetime(idx),
             in_sample_year=10,
             out_sample_year=3)
+        """
         alpha_list = []
         return_list = []
         sd_list = []
@@ -147,18 +234,25 @@ if __name__ == "__main__":
         sharp_list = []
         sharp_smooth_list = []
         new_sharp_list = []
+        """
         for key in date_dict.keys():
             print(key)
-            in_idx = serial_stats.get_sample_boolean_index(
-                index=pd.to_datetime(bulk_pct.index),
-                start_date=date_dict[key]['in_start'],
-                end_date=date_dict[key]['in_end'])
-            out_idx = serial_stats.get_sample_boolean_index(
-                index=pd.to_datetime(bulk_pct.index),
-                start_date=date_dict[key]['out_start'],
-                end_date=date_dict[key]['out_end'])
             in_out_dict = get_in_out_idx(idx, date_dict, key)
+            in_idx = in_out_dict['in_idx']
+            out_idx = in_out_dict['out_idx']
 
+            fundamental_regression.in_x_y(in_x=fundamental_X[in_idx, :], in_y=fundamental_Y[in_idx, :])
+            fundamental_regression.out_x_y(out_x=fundamental_X[out_idx, :], out_y=fundamental_Y[out_idx, :])
+            fundamental_regression.in_fitting()
+            fundamental_regression.out_fitting()
+            fundamental_regression.append_in_alpha()
+
+            multiple_regression.in_x_y(in_x=multiple_X[in_idx, :], in_y=multiple_Y[in_idx, :])
+            multiple_regression.out_x_y(out_x=multiple_X[out_idx, :], out_y=multiple_Y[out_idx, :])
+            multiple_regression.in_fitting()
+            multiple_regression.out_fitting()
+            multiple_regression.append_in_alpha()
+            """
             ff_model_in = sm.OLS(Y[in_idx, :], sm.add_constant(X[in_idx, :])).fit()
             alpha_list.append(ff_model_in.params[0, :])
             return_list.append(bulk_pct.values[in_idx, :].mean(0))
@@ -168,7 +262,7 @@ if __name__ == "__main__":
             alpha_list_out.append(ff_model_out.params[0, :])
             return_list_out.append(bulk_pct.values[out_idx, :][1:].mean(0))
             sd_list_out.append(bulk_pct.values[out_idx, :][1:].std(0))
-
+            """
             """
             temp_sharp = []
             temp_sharp_smooth = []
@@ -187,22 +281,78 @@ if __name__ == "__main__":
             sharp_smooth_list.append(temp_sharp_smooth)
             new_sharp_list.append(temp_new_sharp)
             """
-        total_alpha_list.append(alpha_list)
-        total_return_list.append(return_list)
-        total_sd_list.append(sd_list)
+        total_f_alpha_in.append(fundamental_regression.in_alpha_list.copy())
+        total_f_alpha_out.append(fundamental_regression.out_alpha_list.copy())
 
-        total_alpha_list_out.append(alpha_list_out)
-        total_return_list_out.append(return_list_out)
-        total_sd_list_out.append(sd_list_out)
+        total_m_alpha_in.append(multiple_regression.in_alpha_list.copy())
+        total_m_alpha_out.append(multiple_regression.out_alpha_list.copy())
+        """
+            total_alpha_list.append(alpha_list)
+            total_return_list.append(return_list)
+            total_sd_list.append(sd_list)
 
-        total_sharp_list.append(sharp_list)
-        total_sharp_smooth_list.append(sharp_smooth_list)
-        total_new_sharp_list.append(new_sharp_list)
+            total_alpha_list_out.append(alpha_list_out)
+            total_return_list_out.append(return_list_out)
+            total_sd_list_out.append(sd_list_out)
 
-    x = np.array(total_sharp_list)[1:, :, :].flatten().copy()
-    y = np.array(total_alpha_list_out)[1:, :, :].flatten().copy()
+            total_sharp_list.append(sharp_list)
+            total_sharp_smooth_list.append(sharp_smooth_list)
+            total_new_sharp_list.append(new_sharp_list)
+            """
+    """
+    data_read.save_to_pickle(
+        any_=total_f_alpha_in,
+        path='C:/Users/doomoolmori/factor_attribution_process/etc',
+        name='total_f_alpha_in.pickle')
+    data_read.save_to_pickle(
+        any_=total_f_alpha_out,
+        path='C:/Users/doomoolmori/factor_attribution_process/etc',
+        name='total_f_alpha_out.pickle')
+    data_read.save_to_pickle(
+        any_=total_m_alpha_in,
+        path='C:/Users/doomoolmori/factor_attribution_process/etc',
+        name='total_m_alpha_in.pickle')
+    data_read.save_to_pickle(
+        any_=total_m_alpha_out,
+        path='C:/Users/doomoolmori/factor_attribution_process/etc',
+        name='total_m_alpha_out.pickle')
+    """
+    np.array(total_f_alpha_in)
+
+    total_f_alpha_in = np.array(total_f_alpha_in)
+    total_f_alpha_out = np.array(total_f_alpha_out)
+    total_m_alpha_in = np.array(total_m_alpha_in)
+    total_m_alpha_out = np.array(total_m_alpha_out)
+
+
+    total_f_alpha_in_sd = total_f_alpha_in.copy() * 0
+    total_f_alpha_out_sd = total_f_alpha_out.copy() * 0
+    total_m_alpha_in_sd = total_m_alpha_in.copy() * 0
+    total_m_alpha_out_sd = total_m_alpha_out.copy() * 0
+
+
+    for i in range(len(total_f_alpha_in)):
+        for j in range(len(total_f_alpha_in[0])):
+            total_f_alpha_in_sd[i, j, :] = total_f_alpha_in[i, :j + 1, :].std(0)
+            total_f_alpha_out_sd[i, j, :] = total_f_alpha_in[i, :j + 1, :].std(0)
+            total_m_alpha_in_sd[i, j, :] = total_m_alpha_in[i, :j + 1, :].std(0)
+            total_m_alpha_out_sd[i, j, :] = total_m_alpha_in[i, :j + 1, :].std(0)
+
+
+    x = (np.array(total_f_alpha_in)[:, :, :].flatten().copy() + np.array(total_m_alpha_in)[:, :, :].flatten().copy())/ \
+        (np.array(total_f_alpha_in_sd)[:, :, :].flatten().copy() + np.array(total_m_alpha_in_sd)[:, :, :].flatten().copy())
+    y = (np.array(total_f_alpha_out)[:, :, :].flatten().copy() + np.array(total_m_alpha_out)[:, :, :].flatten().copy())/ \
+        (np.array(total_f_alpha_out_sd)[:, :, :].flatten().copy() + np.array(total_m_alpha_out_sd)[:, :,
+                                                                   :].flatten().copy())
+
     ax = scatter_plot(x, y)
-    pd.Series(x).corr(pd.Series(y))
+
+
+
+
+    #y = np.array(total_alpha_list_out)[1:, :, :].flatten().copy()
+    #ax = scatter_plot(x, y)
+    #pd.Series(x).dropna().corr(pd.Series(y).dropna())
 
     #x = data_read.read_pickle(
     #    path='C:/Users/doomoolmori/factor_attribution_process/etc',
@@ -212,7 +362,7 @@ if __name__ == "__main__":
     #    name='total_alpha_list_out.pickle')
     #ax = scatter_plot(np.array(x).flatten(), np.array(y).flatten())
     #pd.Series(np.array(x).flatten()).corr(pd.Series(np.array(y).flatten()))
-
+    """
     data_read.save_to_pickle(
         any_=total_alpha_list,
         path='C:/Users/doomoolmori/factor_attribution_process/etc',
@@ -229,28 +379,7 @@ if __name__ == "__main__":
         any_=total_alpha_list_out,
         path='C:/Users/doomoolmori/factor_attribution_process/etc',
         name='total_alpha_list_out.pickle')
-    data_read.save_to_pickle(
-        any_=total_return_list_out,
-        path='C:/Users/doomoolmori/factor_attribution_process/etc',
-        name='total_return_list_out.pickle')
-    data_read.save_to_pickle(
-        any_=total_sd_list_out,
-        path='C:/Users/doomoolmori/factor_attribution_process/etc',
-        name='total_sd_list_out.pickle')
-    data_read.save_to_pickle(
-        any_=total_sharp_list,
-        path='C:/Users/doomoolmori/factor_attribution_process/etc',
-        name='total_sharp_list.pickle')
-    data_read.save_to_pickle(
-        any_=total_sharp_smooth_list,
-        path='C:/Users/doomoolmori/factor_attribution_process/etc',
-        name='total_sharp_smooth_list.pickle')
-    data_read.save_to_pickle(
-        any_=total_new_sharp_list,
-        path='C:/Users/doomoolmori/factor_attribution_process/etc',
-        name='total_new_sharp_list.pickle')
-
-
+    """
 
     """    
     x = np.array(total_alpha_list)[1:, 61:, :].flatten().copy()
